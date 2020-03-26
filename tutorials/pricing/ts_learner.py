@@ -1,8 +1,8 @@
-from tutorials.pricing.learner import Learner
+from tutorials.pricing.Learner import Learner
 import numpy as np
 
 
-class ThompsonSamplingLearner(Learner):
+class TSLearner(Learner):
     def __init__(self, n_arms: int):
         super().__init__(n_arms)
         self.beta_parameters = np.ones((n_arms, 2))
