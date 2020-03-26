@@ -19,4 +19,5 @@ class ThompsonSamplingLearner(Learner):
 
         # Update the beta distributions for the pulled arm
         self.beta_parameters[pulled_arm, 0] += reward
-        self.beta_parameters[pulled_arm, 0] += 1 - reward
+        self.beta_parameters[pulled_arm, 1] += 1 - reward
+
