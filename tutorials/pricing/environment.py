@@ -2,7 +2,7 @@ import numpy as np
 
 
 class Environment(object):
-    def __init__(self, n_arms: int, probabilities: list):
+    def __init__(self, n_arms: int, probabilities: np.ndarray):
         """
         This class models a MAB setting, storing probabilities of success for each arm and providing stochastic rewards
         for each arm
