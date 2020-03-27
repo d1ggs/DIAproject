@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 from tqdm import trange
 
 from tutorials.pricing.environments import StationaryEnvironment
-from tutorials.pricing.ts_learner import TSLearner
-from tutorials.pricing.greedylearner import GreedyLearner
+from tutorials.pricing.learners.ts_learner import TSLearner
+from tutorials.pricing.learners.greedylearner import GreedyLearner
 
 n_arms = 4
 p = np.array([0.15, 0.1, 0.1, 0.35])

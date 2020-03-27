@@ -1,9 +1,8 @@
-import numpy as numpy
 import matplotlib.pyplot as plt
 import numpy as np
 from tutorials.pricing.environments import NonStationaryEnvironment
-from tutorials.pricing.ts_learner import TSLearner
-from tutorials.pricing.swtslearner import SWTSLearner
+from tutorials.pricing.learners.ts_learner import TSLearner
+from tutorials.pricing.learners.swts_learner import SWTSLearner
 
 
 n_arms = 4
@@ -17,10 +16,10 @@ swts_rewards_per_experiment = []
 window_size = 4 * int(np.sqrt(T))
 
 for e in range(0, n_experiments):
-    ts_env = NonStationaryEnvironment(n_arms, probalities=p, horizon=T)
+    ts_env = NonStationaryEnvironment(n_arms, probabilities=p, horizon=T)
     ts_learner = TSLearner(n_arms=n_arms)
 
-    swts_env = NonStationaryEnvironment(n_arms=n_arms, probalities=p, horizon=T)
+    swts_env = NonStationaryEnvironment(n_arms=n_arms, probabilities=p, horizon=T)
     swts_learner = SWTSLearner(n_arms=n_arms, window_size=window_size)
 
     for t in range(0,T):

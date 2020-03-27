@@ -19,6 +19,7 @@ class Learner(object):
         :param pulled_arm: the index of the arm that has been pulled at the current round
         """
 
+        # Store the reward
         self.rewards_per_arm[pulled_arm].append(reward)
         self.collected_rewards = np.append(self.collected_rewards, reward)
 
