@@ -2,9 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import trange
 
-from tutorials.pricing.Environment import Environment
-from tutorials.pricing.TS_Learner import TSLearner
-from tutorials.pricing.GreedyLearner import GreedyLearner
+from tutorials.pricing.environments import StationaryEnvironment
+from tutorials.pricing.ts_learner import TSLearner
+from tutorials.pricing.greedylearner import GreedyLearner
 
 n_arms = 4
 p = np.array([0.15, 0.1, 0.1, 0.35])
@@ -18,7 +18,7 @@ ts_rewards_per_experiment = []
 gr_rewards_per_experiment = []
 
 for e in trange(n_experiments):
-    env = Environment(n_arms=n_arms, probabilities=p)
+    env = StationaryEnvironment(n_arms=n_arms, probabilities=p)
     ts_learner = TSLearner(n_arms=n_arms)
     gr_learner = GreedyLearner(n_arms=n_arms)
 
