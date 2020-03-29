@@ -30,6 +30,7 @@ for e in trange(n_experiments):
         # Thompson Sampling Learner
         pulled_arm = ts_learner.pull_arm()
         reward = env.round(pulled_arm)
+        print(reward)
         ts_learner.update(pulled_arm, reward)
         ts_rewards.append(reward)
 

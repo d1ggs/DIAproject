@@ -1,6 +1,6 @@
 from abc import ABC
 import math
-
+import numpy as np
 
 class ConversionRateCurve(ABC):
     def compute(self, x):
@@ -18,18 +18,26 @@ class Logistic(ConversionRateCurve):
 
 
 class DemandModel(object):
-    def __init__(self, cr_curve):
+    def __init__(self, cr_curve, n_arms):
         self.cr_curve = cr_curve
+        self.n_arms = n_arms
 
     def compute_buyers(self, n_users, price):
-        return round(n_users * self.cr_curve.compute(price))
+        buyers = 0
+        conversion_rate = self.cr_curve.compute(price)
+        for _ in range(n_users):
+            buyers += np.random.binomial(1, conversion_rate)
+        return buyers
+
+    def optimal_choice(self):
+        return max([i * self.cr_curve.compute(i) for i in range(1, self.n_arms + 1)])
 
 
 if __name__ == '__main__':
     results = []
     for i in range(1, 6):
         fun = Logistic(50, i)
-        env = DemandModel(fun)
+        env = DemandModel(fun, 100)
         partial = []
         for j in range(100):
             partial.append(env.compute_buyers(100, j))
