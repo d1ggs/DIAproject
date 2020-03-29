@@ -1,32 +1,40 @@
-import numpy as np 
-from copy import copy
-
+import numpy as np
 
 def simulate_episode(init_prob_matrix, n_steps_max):
     prob_matrix = init_prob_matrix.copy()
     n_nodes = prob_matrix.shape[0]
     initial_active_nodes = np.random.binomial(1, 0.1, size=(n_nodes))
     history = np.array([initial_active_nodes])
+
     active_nodes = initial_active_nodes
     newly_active_nodes = active_nodes
-    t=0
+    t = 0
+
+    # Loop until either the time budget is exhausted or there is no new active node
     while(t<n_steps_max and np.sum(newly_active_nodes)>0):
-        p = (prob_matrix.T*active_nodes).T
+        p = (prob_matrix.T*active_nodes).T  # This is the probability matrix but only with active nodes
+
+        # Find edges exceeding an activation probability threshold and activate them
         activated_edges = p > np.random.rand(p.shape[0], p.shape[1])
-        prob_matrix = prob_matrix* ((p!=0)==activated_edges)
-        newly_active_nodes = (np.sum(activated_edges,axis=0)>0)*(1-active_nodes)
-        active_nodes = np.array(active_nodes+newly_active_nodes)
-        history = np.concatenate((history,[newly_active_nodes]), axis = 0)
-        t+=1
+        # Remove from the probability matrix the probability values related to the previously activated nodes
+        prob_matrix = prob_matrix * ((p != 0) == activated_edges)
+
+        # Activate those nodes which have at least and active edge and were not already active,
+        # then add them to the currently active nodes
+        newly_active_nodes = (np.sum(activated_edges, axis=0) > 0) * (1 - active_nodes)
+        active_nodes = np.array(active_nodes + newly_active_nodes)
+
+        history = np.concatenate((history, [newly_active_nodes]), axis=0)
+        t += 1
     return history
 
 def estimate_probabilities(dataset, node_index, n_nodes):
-    estimated_prob = np.ones(n_nodes)*1.0/(n_nodes-1)
+    estimated_prob = np.ones(n_nodes)*1.0/(n_nodes-1)  # Set all edges to equal probability
     credits = np.zeros(n_nodes)
     occurr_v_active = np.zeros(n_nodes)
     n_episodes = len(dataset)
     for episode in dataset:
-        idx_w_active = np.argwhere(episode[:, node_index] == 1).reshape(-1)
+        idx_w_active = np.argwhere(episode[:, node_index] == 1).reshape(-1)  # Store at which step each node was active
         if len(idx_w_active)>0 and idx_w_active>0:
             active_nodes_in_prev_step = episode[idx_w_active -1,:].reshape(-1)
             credits += active_nodes_in_prev_step/np.sum(active_nodes_in_prev_step)
