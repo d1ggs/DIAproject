@@ -4,11 +4,23 @@ from conversion_rate import Logistic
 
 class EnviromentUCB():
 
-    def __init__(self, n_arms, n_costumers):
-        self.n_arms = n_arms
+    def __init__(self, arms, n_costumers):
+        self.arms = arms
+        self.n_arms = self.arms.shape[0]
         self.curve = Logistic(3)
         self.n_costumers = n_costumers
 
     def round(self, pulled_arm):
         reward = np.random.normal(self.curve.compute(pulled_arm), 0.1)*pulled_arm * self.n_costumers
         return reward
+
+    def opt_reward(self):
+        tmp = []
+        for arm in self.arms:
+            tmp.append(np.random.normal(self.curve.compute(arm), 0.1)*arm * self.n_costumers)
+        max_reward = np.amax(tmp)
+        return max_reward
+
+
+
+
