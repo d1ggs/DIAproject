@@ -7,7 +7,7 @@ class EnviromentUCB():
     def __init__(self, arms, n_costumers):
         self.arms = arms
         self.n_arms = self.arms.shape[0]
-        self.curve = Logistic(3)
+        self.curve = Logistic(self.n_arms/2)
         self.n_costumers = n_costumers
 
     def round(self, pulled_arm):
@@ -17,7 +17,7 @@ class EnviromentUCB():
     def opt_reward(self):
         tmp = []
         for arm in self.arms:
-            tmp.append(np.random.normal(self.curve.compute(arm), 0.1)*arm * self.n_costumers)
+            tmp.append(self.curve.compute(arm) * arm * self.n_costumers)
         max_reward = np.amax(tmp)
         return max_reward
 
