@@ -1,18 +1,19 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from tqdm import trange
 
 from prova_ucb.enviroment import *
-from prova_ucb.UCBLerner import *
+from prova_ucb.UCBLearner import *
 
-T = 300
+T = 100
 arms = np.array(([0, 1, 2, 3, 4, 5]))
 n_costumers = 1000
 n_arms = arms.shape[0]
-n_experiments = 1000
+n_experiments = 300
 
 reward_per_experiment = []
 env = EnviromentUCB(arms, n_costumers)
-for e in range(n_experiments):
+for e in trange(n_experiments):
     rewards = []
     ucb_learner = UCBLearner(n_arms)
     for t in range(T):
@@ -23,6 +24,8 @@ for e in range(n_experiments):
     reward_per_experiment.append(ucb_learner.collected_rewards)
 
 optimal_reward = env.opt_reward()
+# print(reward_per_experiment)
+# print(optimal_reward)
 plt.figure()
 plt.xlabel("Time")
 plt.ylabel("Regret")

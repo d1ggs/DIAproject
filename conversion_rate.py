@@ -2,6 +2,7 @@ from abc import ABC
 import math
 import numpy as np
 
+
 class ConversionRateCurve(ABC):
     def compute(self, x):
         pass
@@ -9,6 +10,7 @@ class ConversionRateCurve(ABC):
 
 class Logistic(ConversionRateCurve):
     def __init__(self, mid: float, growth=1):
+        """:param mid: the point where the curve outputs 0.5"""
         self.mid = mid
         self.growth = growth
 
@@ -23,14 +25,18 @@ class DemandModel(object):
         self.n_arms = n_arms
 
     def compute_buyers(self, n_users, price):
+        """Compute how many users will buy, sampling from a Bernoulli distribution following the conversion rate"""
         buyers = 0
         conversion_rate = self.cr_curve.compute(price)
+
+        # Sample actual buyers from a binomial distribution
         for _ in range(n_users):
             buyers += np.random.binomial(1, conversion_rate)
         return buyers
 
     def optimal_choice(self):
-        return max([i * self.cr_curve.compute(i) for i in range(1, self.n_arms + 1)])
+        """Compute best arm"""
+        return max([self.cr_curve.compute(i) for i in range(1, self.n_arms + 1)])
 
 
 if __name__ == '__main__':

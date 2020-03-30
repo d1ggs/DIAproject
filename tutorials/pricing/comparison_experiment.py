@@ -10,7 +10,7 @@ n_arms = 4
 p = np.array([0.15, 0.1, 0.1, 0.35])
 opt = p[3]
 
-T = 1000
+T = 100
 
 n_experiments = 300
 
@@ -30,7 +30,6 @@ for e in trange(n_experiments):
         # Thompson Sampling Learner
         pulled_arm = ts_learner.pull_arm()
         reward = env.round(pulled_arm)
-        print(reward)
         ts_learner.update(pulled_arm, reward)
         ts_rewards.append(reward)
 
