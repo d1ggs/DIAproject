@@ -1,10 +1,11 @@
 from abc import ABC
 import math
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class ConversionRateCurve(ABC):
-    def compute(self, x):
+    def get_probability(self, x):
         pass
 
 
@@ -14,9 +15,46 @@ class Logistic(ConversionRateCurve):
         self.mid = mid
         self.growth = growth
 
-    def compute(self, x):
+    def get_probability(self, x):
         res = 1 - 1 / (self.growth * (1 + math.e ** (-x + self.mid)))
         return res
+
+
+class Linear(ConversionRateCurve):
+    def __init__(self, y0, m):
+        self.y0 = y0
+        self.m = m
+
+    def get_probability(self, x):
+        return self.m * x + self.y0
+
+
+class Product1Season1(ConversionRateCurve):
+    def __init__(self):
+        self.points = np.array(
+            [[0, 0.9], [0.5, 0.85], [1, .75], [1.5, .7], [2, .55], [2.5, .3], [3, .1], [3.5, .05], [4, .01], [4.5, 0],
+             [5, 0], [5.5, 0], [6, 0], [7, 0]])
+        self.x = self.points[:, 0]
+        self.y = self.points[:, 1]
+        self.z = np.polyfit(self.x, self.y, 6)
+        self.p = np.poly1d(self.z)
+
+    def get_probability(self, price: int):
+        prob = self.p(price)
+        if price < 0 or price > 4:
+            return 0
+        elif prob > 1:
+            return 1
+        elif prob < 0:
+            return 0
+        else:
+            return prob
+
+    def plot(self):
+        new_x = np.linspace(0, 6, 100)
+        plt.figure("Product1 season1")
+        plt.plot(new_x, self.p(new_x), 'r')
+        plt.show()
 
 
 class DemandModel(object):

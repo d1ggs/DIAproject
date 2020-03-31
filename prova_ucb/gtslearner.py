@@ -1,7 +1,8 @@
 from tutorials.pricing.learners.learner import *
 
 
-class GTS_Learner(Learner):
+class GTSLearner(Learner):
+    """Gaussian process Thompson Sampling learner class"""
     def __init__(self, n_arms):
         super().__init__(n_arms)
         self.means = np.zeros(n_arms)

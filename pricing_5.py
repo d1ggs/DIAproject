@@ -1,5 +1,4 @@
-from tutorials.pricing.learners import ts_learner
-from conversion_rate import DemandModel, Logistic
+from prova_ucb.conversion_rate import DemandModel, Logistic
 
 # TODO connect to the social influence algorithm
 
@@ -7,9 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import trange
 
-from tutorials.pricing.environments import StationaryEnvironment
 from tutorials.pricing.learners.ts_learner import TSLearner
-from tutorials.pricing.learners.greedylearner import GreedyLearner
 
 T = 100
 n_arms = 6
