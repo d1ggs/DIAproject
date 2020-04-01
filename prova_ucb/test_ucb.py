@@ -6,7 +6,7 @@ from prova_ucb.environment import EnvironmentUCB
 from prova_ucb.UCBLearner import UCBLearner
 from prova_ucb.gtslearner import GTSLearner
 
-T = 100
+T = 500
 arms = np.array(([0, 1, 2, 3, 4, 5]))
 n_customers = 1000
 n_arms = arms.shape[0]
@@ -14,7 +14,7 @@ n_experiments = 300
 
 reward_per_experiment_ucb = []
 reward_per_experiment_gts = []
-env = EnvironmentUCB(arms, variance=0)
+env = EnvironmentUCB(arms, variance=0.1)
 
 optimal_reward = env.opt_reward()
 regret_per_experiment_ucb = []
@@ -28,7 +28,7 @@ for e in trange(n_experiments):
 
     for t in range(T):
         clicks = round(np.random.normal(10, 0.1))
-        clicks = 1000
+        clicks = 1
         rewards_ucb = []
         rewards_gts = []
 
@@ -37,18 +37,18 @@ for e in trange(n_experiments):
 
         reward = round(env.round(ucb_pulled_arm) * clicks)
         ucb_learner.update(ucb_pulled_arm, reward)
-        rewards_ucb.append([reward] * clicks)
+        # rewards_ucb.append(reward)
 
         regret_ucb.append(optimal_reward * clicks - reward)
 
         reward = round(env.round(gts_pulled_arm) * clicks)
         gts_learner.update(gts_pulled_arm, reward)
-        rewards_gts.append([reward] * clicks)
+        # rewards_gts.append(reward)
+        regret_gts.append(optimal_reward*clicks - reward)
 
         # ucb_reward_per_timestep.append(np.mean(rewards_ucb))
         # gts_reward_per_timestep.append(np.mean(rewards_gts))
 
-        regret_gts.append(optimal_reward*clicks - reward)
 
     regret_per_experiment_gts.append(regret_gts)
     regret_per_experiment_ucb.append(regret_ucb)

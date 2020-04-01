@@ -6,12 +6,11 @@ class EnvironmentUCB(object):
     def __init__(self, arms, variance=0):
         self.arms = arms
         self.n_arms = self.arms.shape[0]
-        #self.curve = Product1_Season1()
         self.curve = Product1Season1()
         self.variance = variance
 
     def round(self, pulled_arm):
-        #print(pulled_arm, self.curve.get_probability(pulled_arm))
+        # print(pulled_arm, self.curve.get_probability(pulled_arm))
         cr = self.curve.get_probability(pulled_arm)
         if self.variance:
             return np.random.normal(cr, self.variance) * pulled_arm
