@@ -21,7 +21,7 @@ class UCBLearner(Learner):
 class SWUCBLearner(UCBLearner):
     """Class implementing SW-UCB# state-of-the-art bandit for non-stationary contexts"""
     def __init__(self, n_arms: int, lamda: float, alpha: float):
-        assert lamda >= 0, "lambda must be equal or greater than 0"
+        assert lamda >= 0, 'lambda must be equal or greater than 0'
         assert 1 >= alpha > 0, 'alpha must satisfy 0 < alpha <= 1'
         super().__init__(n_arms)
         self.lamda = lamda
@@ -29,9 +29,11 @@ class SWUCBLearner(UCBLearner):
         self.pulls = []
 
     def get_tau(self):
+        """Compute the size of the sliding window"""
         return min(self.t, np.ceil(self.lamda * (self.t ** self.alpha)))
 
     def get_times_pulled(self, arm):
+        """Compute how many times an arm has been pulled inside the sliding window"""
         start = self.t - self.get_tau() + 1
         return self.pulls[start:].count(arm)
 
@@ -39,9 +41,11 @@ class SWUCBLearner(UCBLearner):
         # Store the reward, putting 0s to those arms that were not pulled
         for i in range(len(self.rewards_per_arm)):
             self.rewards_per_arm[i].append(reward if i == pulled_arm else 0)
+
         self.collected_rewards = np.append(self.collected_rewards, reward)
 
     def update(self, pulled_arm, reward):
+        """Update the confidence bounds over the arms"""
         self.pulls.append(pulled_arm)
         self.update_observations(pulled_arm, reward)
         self.t += 1
