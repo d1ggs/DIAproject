@@ -85,7 +85,7 @@ class Product1Season2(ConversionRateCurve):
         plt.show()
 
 
-class Product1Season2(ConversionRateCurve):
+class Product1Season3(ConversionRateCurve):
     def __init__(self):
         self.points = np.array(
             [[0, 1], [0.5, 0.9], [1, .85], [1.5, .75], [2, .60], [2.5, .40], [3, .20], [3.5, .10], [4, .05], [4.5, .0],
