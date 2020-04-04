@@ -2,20 +2,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import trange
 
-from tutorials.pricing.environment import EnvironmentUCB
-from tutorials.pricing.learners.UCBLearner import UCBLearner
-from tutorials.pricing.learners.ts_learner import TSLearner
+from pricing.environments import EnvironmentUCB
+from pricing.learners.UCBLearner import UCBLearner
+from pricing.learners.ts_learner import TSLearner
 
 prices = [63, 76, 10, 8, 53, 21]
 T = 100
-arms = np.array(([0, 1, 2, 3, 4, 5]))
+arms = [0, 1, 2, 3, 4, 5]
 n_customers = 1000
-n_arms = arms.shape[0]
+n_arms = len(arms)
 n_experiments = 500
 
 reward_per_experiment_ucb = []
 reward_per_experiment_gts = []
-env = EnvironmentUCB(arms, variance=0.1)
+env = EnvironmentUCB(arms=arms, prices=prices)
 
 optimal_reward = env.opt_reward()
 regret_per_experiment_ucb = []

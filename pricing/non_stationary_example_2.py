@@ -2,13 +2,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import trange
 
-from tutorials.pricing.environments import NonStationaryEnvironment
-from tutorials.pricing.learners.ts_learner import TSLearner
-from tutorials.pricing.learners.swts_learner import SWTSLearner
+from pricing.environments import NonStationaryEnvironment
+from pricing.learners.ts_learner import TSLearner
+from pricing.learners.swts_learner import SWTSLearner
 
-from tutorials.pricing.conversion_rate import Product1Season1, Product1Season2, Product1Season3
+from pricing.conversion_rate import Product1Season1, Product1Season2, Product1Season3
 
-from tutorials.pricing.learners.UCBLearner import SWUCBLearner
+from pricing.learners.UCBLearner import SWUCBLearner
 
 
 n_arms = 6
@@ -16,9 +16,9 @@ curves = [Product1Season1(), Product1Season2(), Product1Season3()]
 prices = [63, 76, 10, 8, 53, 21]
 arms = [0, 1, 2, 3, 4, 5]
 
-T = 100
+T = 1000
 
-n_experiments = 1000
+n_experiments = 300
 
 swucb_regrets_per_experiment = []
 swts_regrets_per_experiment = []

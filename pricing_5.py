@@ -1,4 +1,4 @@
-from tutorials.pricing.conversion_rate import DemandModel, Logistic
+from pricing import DemandModel, Logistic
 
 # TODO connect to the social influence algorithm
 
@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import trange
 
-from tutorials.pricing.learners.ts_learner import TSLearner
+from pricing.learners.ts_learner import TSLearner
 
 T = 100
 n_arms = 6

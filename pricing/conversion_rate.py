@@ -136,4 +136,8 @@ class DemandModel(object):
 
 if __name__ == '__main__':
     a = Product1Season1()
+    b = Product1Season2()
+    c = Product1Season3()
     a.plot()
+    b.plot()
+    c.plot()

@@ -1,6 +1,6 @@
 import numpy as np
 
-from tutorials.pricing.conversion_rate import Product1Season1
+from pricing import Product1Season1
 
 
 class StationaryEnvironment(object):
@@ -34,12 +34,11 @@ class StationaryEnvironment(object):
 
 class EnvironmentUCB(object):
 
-    def __init__(self, arms: list, prices: list, variance=0):
+    def __init__(self, arms: list, prices: list):
         self.arms = arms
         self.prices = prices
         self.n_arms = len(self.arms)
         self.curve = Product1Season1()
-        self.variance = variance
 
     def round(self, pulled_arm):
         # print(pulled_arm, self.curve.get_probability(pulled_arm))
