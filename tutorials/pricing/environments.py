@@ -1,11 +1,14 @@
 import numpy as np
 
+from tutorials.pricing.conversion_rate import Product1Season1
+
 
 class StationaryEnvironment(object):
     """
     Models a stationary MAB setting, storing probabilities of success for each arm and providing
     stochastic rewards for each arm
     """
+
     def __init__(self, n_arms: int, probabilities: np.ndarray):
         """
         :param n_arms: the number of arms of the MAB setting
@@ -29,24 +32,51 @@ class StationaryEnvironment(object):
         return reward
 
 
-class NonStationaryEnvironment(StationaryEnvironment):
+class EnvironmentUCB(object):
+
+    def __init__(self, arms: list, prices: list, variance=0):
+        self.arms = arms
+        self.prices = prices
+        self.n_arms = len(self.arms)
+        self.curve = Product1Season1()
+        self.variance = variance
+
+    def round(self, pulled_arm):
+        # print(pulled_arm, self.curve.get_probability(pulled_arm))
+        cr = self.curve.get_probability(pulled_arm)
+        return np.random.binomial(1, cr)
+
+    def opt_reward(self):
+        tmp = []
+        for i in range(len(self.arms)):
+            tmp.append(self.curve.get_probability(self.arms[i]) * self.prices[i])
+        max_reward = np.amax(tmp)
+        return max_reward
+
+
+class NonStationaryEnvironment(object):
     """
     Models a non-stationary MAB setting, storing probabilities of success for each arm and providing
     stochastic rewards for each arm
     """
-    def __init__(self, n_arms: int, probabilities: np.ndarray, horizon: int):
+
+    def __init__(self, arms: list, prices: list, curves: list, horizon: int):
         """
         :param n_arms, the number of arms of the MAB setting
         :param probabilities, the success probability for each Bernoulli distribution associated to an arm
         :param horizon: the maximum amount of time steps before the computation stops
         """
 
-        # We want to have distinct probabilities for each phase, so we need a probability matrix
-        assert len(probabilities.shape) == 2, "The probabilities must be a 2-dimensional array"
+        self.n_arms = len(arms)
+        self.arms = arms
+        self.curves = curves
+        self.prices = prices
 
-        super().__init__(n_arms, probabilities)
         self.t = 0  # Represents the current time step
         self.horizon = horizon
+
+        n_phases = len(self.curves)  # The number of phases is equal to the number of arms
+        self.phase_size = self.horizon / n_phases  # Assuming that all phases have the same size
 
     def round(self, pulled_arm):
         """
@@ -55,10 +85,17 @@ class NonStationaryEnvironment(StationaryEnvironment):
         :param: pulled_arm: the index of the arm that has been pulled at this time step
         :return: the sampled reward for the pulled arm
         """
-        n_phases = len(self.probabilities)  # The number of phases is equal to the number of arms
-        phase_size = self.horizon / n_phases  # Assuming that all phases have the same size
-        current_phase = int(self.t / phase_size)
+        current_phase = int(self.t / self.phase_size)
 
-        p = self.probabilities[current_phase][pulled_arm]
+        cr = self.curves[current_phase].get_probability(pulled_arm)
         self.t += 1
-        return np.random.binomial(1, p)
+        return np.random.binomial(1, cr)
+
+    def opt_reward(self):
+        current_phase = int(self.t / self.phase_size)
+
+        tmp = []
+        for i in range(self.n_arms):
+            tmp.append(self.curves[current_phase].get_probability(self.arms[i]) * self.prices[i])
+
+        return self.prices[np.argmax(tmp)]

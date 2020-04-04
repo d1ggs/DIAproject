@@ -1,4 +1,4 @@
-from prova_ucb.conversion_rate import DemandModel, Logistic
+from tutorials.pricing.conversion_rate import DemandModel, Logistic
 
 # TODO connect to the social influence algorithm
 

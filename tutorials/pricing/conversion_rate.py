@@ -135,23 +135,5 @@ class DemandModel(object):
 
 
 if __name__ == '__main__':
-    results = []
-    for i in range(1, 6):
-        fun = Logistic(50, i)
-        env = DemandModel(fun, 100)
-        partial = []
-        for j in range(100):
-            partial.append(env.compute_buyers(100, j))
-        results.append(partial)
-
-    import matplotlib.pyplot as plt
-
-    plt.figure()
-    plt.xlabel("Price")
-    plt.ylabel("Converted users")
-
-    for partial in results:
-        plt.plot(partial)
-
-    plt.legend(['1', '2', '3', '4'])
-    plt.show()
+    a = Product1Season1()
+    a.plot()

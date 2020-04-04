@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import trange
 
-from prova_ucb.environment import EnvironmentUCB
+from tutorials.pricing.environment import EnvironmentUCB
 from tutorials.pricing.learners.UCBLearner import UCBLearner
 from tutorials.pricing.learners.ts_learner import TSLearner
 

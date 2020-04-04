@@ -1,4 +1,4 @@
-from prova_ucb.conversion_rate import Logistic, Product1Season1
+from tutorials.pricing.conversion_rate import Product1Season1
 import numpy as np
 
 class EnvironmentUCB(object):
