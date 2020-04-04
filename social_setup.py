@@ -1,20 +1,20 @@
 import numpy as np
 from helper import Helper
-import pandas as pd
 import os
 
-from const import FEATURE_MAX, ROOT_PROJECT_PATH, MATRIX_PATH
+from const import ROOT_PROJECT_PATH, MATRIX_PATH
 
 class SocialNetwork:
-    def __init__(self,parameters, feature_max):
+    def __init__(self,parameters, social):
         '''
         Features in a Social Network are: Tag, Share, Like, Message, Comment
         They are saved in self.features as a numpy array, ordered as written above (self.features[0] -> Tag...)
         '''
         self.helper = Helper()
-        self.social_edges, self.features = self.helper.read_dataset()
+        self.social_edges = self.helper.get_social_nodes()
+        self.features = self.helper.get_interaction_features(social)
         self.parameters = parameters
-        self.feature_max = feature_max
+        self.feature_max = self.helper.get_feature_max()
 
         assert(self.parameters.shape == self.features[0].shape)
         assert(np.sum(self.parameters)==1)
@@ -51,6 +51,6 @@ if __name__ == "__main__":
     if os.path.isfile(matrix_path):
         matrix = np.load(matrix_path)
     else:
-        social = SocialNetwork(parameters[0], FEATURE_MAX)
+        social = SocialNetwork(parameters[0], "facebook")
         matrix = social.get_matrix()
     print(matrix)
