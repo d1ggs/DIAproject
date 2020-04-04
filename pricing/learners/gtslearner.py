@@ -1,6 +1,3 @@
-from tutorials.pricing.learners.learner import *
-
-
 class GTSLearner(Learner):
     """Gaussian process Thompson Sampling learner class"""
     def __init__(self, n_arms):

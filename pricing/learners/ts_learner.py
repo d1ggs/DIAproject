@@ -1,4 +1,4 @@
-from tutorials.pricing.learners.learner import Learner
+from pricing import Learner
 import numpy as np
 
 

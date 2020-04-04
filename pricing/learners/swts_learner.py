@@ -1,4 +1,4 @@
-from tutorials.pricing.learners.ts_learner import TSLearner
+from pricing.learners.ts_learner import TSLearner
 import numpy as np
 
 
