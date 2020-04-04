@@ -3,8 +3,12 @@ from tutorials.pricing.learners.learner import Learner
 
 
 class UCBLearner(Learner):
-    def __init__(self, n_arms):
+    def __init__(self, n_arms, prices):
         super().__init__(n_arms)
+
+        assert n_arms == len(prices), "Number of prices different from the number of arms"
+
+        self.prices = prices
         self.upper_bounds = np.ones(n_arms) * np.inf
 
     def pull_arm(self):
