@@ -1,5 +1,5 @@
 import numpy as np
-from pricing import Learner
+from pricing.learners.learner import Learner
 
 
 class UCBLearner(Learner):

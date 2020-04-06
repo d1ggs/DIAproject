@@ -6,17 +6,18 @@ from pricing.environments import NonStationaryEnvironment
 from pricing.learners.ts_learner import TSLearner
 from pricing.learners.swts_learner import SWTSLearner
 
-from pricing.conversion_rate import Product1Season1, Product1Season2, Product1Season3
+from pricing.conversion_rate_product_2 import Product2Season1, Product2Season2, Product2Season3
 
 from pricing.learners.UCBLearner import SWUCBLearner
 
 
 n_arms = 6
-curves = [Product1Season1(), Product1Season2(), Product1Season3()]
-prices = [63, 76, 10, 8, 53, 21]
+curves = [Product2Season1(), Product2Season2(), Product2Season3()]
+prices = [1,3,5,6,7,10]
+#prices = [1000,1100,1200,1300,1400,1500]
 arms = [0, 1, 2, 3, 4, 5]
 
-T = 1000
+T = 500
 
 n_experiments = 300
 
@@ -25,6 +26,7 @@ swts_regrets_per_experiment = []
 ts_regrets_per_experiment = []
 
 window_size = 4 * int(np.sqrt(T))
+NonStationaryEnvironment(arms=arms, curves=curves, horizon=T, prices=prices).plot()
 
 for e in trange(n_experiments):
 
@@ -54,7 +56,8 @@ for e in trange(n_experiments):
         reward = ts_env.round(pulled_arm)
         ts_learner.update(pulled_arm, reward)
 
-        instantaneous_regret = opt_reward - prices[pulled_arm]
+        instantaneous_regret = ts_env.get_inst_regret(pulled_arm)
+        assert instantaneous_regret>=0, 'error'
         cumulative_regret_ts += instantaneous_regret
         regrets_ts_per_timestep.append(cumulative_regret_ts)
 
@@ -64,7 +67,8 @@ for e in trange(n_experiments):
         reward = swts_env.round(pulled_arm)
         swts_learner.update(pulled_arm, reward)
 
-        instantaneous_regret = opt_reward - prices[pulled_arm]
+        instantaneous_regret = swts_env.get_inst_regret(pulled_arm)
+
         cumulative_regret_swts += instantaneous_regret
         regrets_swts_per_timestep.append(cumulative_regret_swts)
 
@@ -74,13 +78,16 @@ for e in trange(n_experiments):
         reward = swucb_env.round(pulled_arm)
         swucb_learner.update(pulled_arm, reward)
 
-        instantaneous_regret = opt_reward - prices[pulled_arm]
+        instantaneous_regret = swucb_env.get_inst_regret(pulled_arm)
         cumulative_regret_swucb += instantaneous_regret
         regrets_swucb_per_timestep.append(cumulative_regret_swucb)
 
     swucb_regrets_per_experiment.append(regrets_swucb_per_timestep)
     swts_regrets_per_experiment.append(regrets_swts_per_timestep)
     ts_regrets_per_experiment.append(regrets_ts_per_timestep)
+
+
+
 
 # ts_instantaneous_regret = np.zeros(T)
 # swts_instantaneous_regret = np.zeros(T)

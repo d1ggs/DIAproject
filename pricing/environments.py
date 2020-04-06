@@ -1,6 +1,7 @@
 import numpy as np
-
-from pricing import Product1Season1
+import math
+from pricing.conversion_rate import Product1Season1
+import matplotlib.pyplot as plt
 
 
 class StationaryEnvironment(object):
@@ -19,6 +20,7 @@ class StationaryEnvironment(object):
         self.n_arms = n_arms
         self.probabilities = probabilities
 
+
     def round(self, pulled_arm: int):
         """
         Computes the reward for the pulled arms, drawing from a binomial distribution
@@ -32,6 +34,9 @@ class StationaryEnvironment(object):
         return reward
 
 
+
+
+
 class EnvironmentUCB(object):
 
     def __init__(self, arms: list, prices: list):
@@ -39,18 +44,19 @@ class EnvironmentUCB(object):
         self.prices = prices
         self.n_arms = len(self.arms)
         self.curve = Product1Season1()
+        tmp = []
+        for i in range(len(self.arms)):
+            tmp.append(self.curve.get_probability(self.arms[i]) * self.prices[i])
+        self.opt_reward = np.max(tmp)
+
 
     def round(self, pulled_arm):
         # print(pulled_arm, self.curve.get_probability(pulled_arm))
         cr = self.curve.get_probability(pulled_arm)
         return np.random.binomial(1, cr)
 
-    def opt_reward(self):
-        tmp = []
-        for i in range(len(self.arms)):
-            tmp.append(self.curve.get_probability(self.arms[i]) * self.prices[i])
-        max_reward = np.amax(tmp)
-        return max_reward
+    def get_inst_regret(self, arm):
+        return self.opt_reward - self.prices[arm] * self.curve.get_probability(arm)
 
 
 class NonStationaryEnvironment(object):
@@ -75,7 +81,9 @@ class NonStationaryEnvironment(object):
         self.horizon = horizon
 
         n_phases = len(self.curves)  # The number of phases is equal to the number of arms
-        self.phase_size = self.horizon / n_phases  # Assuming that all phases have the same size
+        self.phase_size = math.ceil(self.horizon / n_phases)  # Assuming that all phases have the same size
+        self.current_phase=0
+
 
     def round(self, pulled_arm):
         """
@@ -84,17 +92,37 @@ class NonStationaryEnvironment(object):
         :param: pulled_arm: the index of the arm that has been pulled at this time step
         :return: the sampled reward for the pulled arm
         """
-        current_phase = int(self.t / self.phase_size)
 
-        cr = self.curves[current_phase].get_probability(pulled_arm)
+        cr = self.curves[self.current_phase].get_probability(pulled_arm)
         self.t += 1
+        self.current_phase = math.floor(self.t / self.phase_size)
         return np.random.binomial(1, cr)
 
     def opt_reward(self):
-        current_phase = int(self.t / self.phase_size)
 
         tmp = []
         for i in range(self.n_arms):
-            tmp.append(self.curves[current_phase].get_probability(self.arms[i]) * self.prices[i])
+            tmp.append(self.curves[self.current_phase].get_probability(self.arms[i]) * self.prices[i])
 
-        return self.prices[np.argmax(tmp)]
+        return np.max(tmp)
+
+    def get_inst_regret(self,arm):
+        return self.opt_reward()-self.prices[arm]*self.curves[self.current_phase].get_probability(arm)
+
+    def plot(self):
+        plot_expected = []
+        for curve in self.curves:
+            t = []
+            for arm in self.arms:
+                t.append(self.prices[arm] * curve.get_probability(arm))
+            plot_expected.append(t)
+
+        plt.figure()
+        plt.ylabel("Expected return")
+        plt.xlabel("arm")
+        for plot in plot_expected:
+            plt.plot(plot)
+
+        plt.legend(["phase "+str(i) for i in range(len(self.curves))])
+        plt.show()
+

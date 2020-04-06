@@ -39,9 +39,9 @@ class Product1Season1(ConversionRateCurve):
         self.z = np.polyfit(self.x, self.y, 6)
         self.p = np.poly1d(self.z)
 
-    def get_probability(self, price: int):
-        prob = self.p(price)
-        if price < 0 or price > 4:
+    def get_probability(self, arm: int):
+        prob = self.p(arm)
+        if arm < 0 or arm > 6:
             return 0
         elif prob > 1:
             return 1
@@ -67,9 +67,9 @@ class Product1Season2(ConversionRateCurve):
         self.z = np.polyfit(self.x, self.y, 6)
         self.p = np.poly1d(self.z)
 
-    def get_probability(self, price: int):
-        prob = self.p(price)
-        if price < 0 or price > 4:
+    def get_probability(self, arm: int):
+        prob = self.p(arm)
+        if arm < 0 or arm > 6:
             return 0
         elif prob > 1:
             return 1
@@ -95,9 +95,9 @@ class Product1Season3(ConversionRateCurve):
         self.z = np.polyfit(self.x, self.y, 6)
         self.p = np.poly1d(self.z)
 
-    def get_probability(self, price: int):
-        prob = self.p(price)
-        if price < 0 or price > 6:
+    def get_probability(self, arm: int):
+        prob = self.p(arm)
+        if arm < 0 or arm > 6:
             return 0
         elif prob > 1:
             return 1
