@@ -12,6 +12,8 @@ arms = [0, 1, 2, 3, 4, 5]
 n_arms = len(arms)
 n_experiments = 50
 
+
+
 reward_per_experiment_ucb = []
 reward_per_experiment_ts = []
 env = EnvironmentUCB(arms=arms, prices=prices)
