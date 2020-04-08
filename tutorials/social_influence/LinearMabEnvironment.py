@@ -1,12 +1,12 @@
 import numpy as np
 
 class LinearMabEnvironment():
-    def __init__(self, n_arms, dim):
+    def __init__(self, n_arms, dim): #dim is the dimension of the feature vector
         super().__init__()
 
         #theta are the parameters used to compute the probabilities of drawing the rewards
         self.theta = np.random.dirichlet(np.ones(dim), size=1)
-        self.arms_features = np.random.binomial(1, 0.5, size=(n_arms,dim))
+        self.arms_features = np.random.binomial(1, 0.5, size=(n_arms,dim)) #rows are arms, columns are feature
         self.p = np.zeros(n_arms)
 
         #compute the probabilities for each arm

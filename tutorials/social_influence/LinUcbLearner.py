@@ -1,6 +1,7 @@
 import numpy as np
 
 
+#UCBLearner learns parameters theta by multiplying matrix M and vector B
 class LinUcbLearner():
     def __init__(self, arms_features):
         super().__init__()
@@ -37,6 +38,7 @@ class LinUcbLearner():
         self.M += np.dot(arm, arm.T)
         self.b += reward * arm
 
+    #arm_idx is the arm just pulled
     def update(self, arm_idx, reward):
         self.pulled_arms.append(arm_idx)
         self.collected_rewards.append(reward)
