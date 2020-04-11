@@ -1,9 +1,7 @@
 import numpy as np
 from copy import copy
-import os
-from const import ROOT_PROJECT_PATH, MATRIX_PATH, FEATURE_MAX
-from helper import Helper
-from social_setup import SocialNetwork
+
+
 
 class InfluenceLearner(object):
     def __init__(self, edge_activations):
@@ -13,7 +11,7 @@ class InfluenceLearner(object):
 
     def simulate_episode(self, seeds, n_steps_max):
         """
-        Simulates an episode starting where at each time step certain nodes activates
+        Simulates an episode where at each time step certain nodes activates
 
         Parameters
         --------
@@ -49,7 +47,6 @@ class InfluenceLearner(object):
         return history
 
 
-
     def mc_sampling(self, seeds, n_episodes):
         """
         Implements Monte Carlo Sampling, from the edge probabilities and a given set of seeds, it returns 
@@ -76,32 +73,5 @@ class InfluenceLearner(object):
     
         estimated_prob = z/n_episodes
         return estimated_prob
-
-if __name__ == "__main__": 
-    
-    #Simulate Social Network
-    parameters = np.array([[0.1, 0.3, 0.2, 0.2,0.2],[0.4, 0.1, 0.2, 0.2,0.1],[0.5, 0.1, 0.1, 0.1,0.2]]) #parameters for each social
-
-    # matrix_path = os.path.join(ROOT_PROJECT_PATH,MATRIX_PATH)
-    # if os.path.isfile(matrix_path):
-    #     prob_matrix = np.load(matrix_path)
-    # else:
-    
-    helper = Helper()
-    dataset = helper.read_dataset()
-    social = SocialNetwork(dataset,parameters[0], FEATURE_MAX)
-    prob_matrix = social.get_matrix()
-    n_nodes = prob_matrix.shape[0]
-    
-    #n_nodes = 50
-    #prob_matrix = np.random.uniform(0.0,0.01,(n_nodes,n_nodes))
-
-    influence_learner = InfluenceLearner(prob_matrix)
-    
-    n_episodes = 10
-    seeds = np.random.binomial(1, 0.1, size=(n_nodes))
-    
-    nodes_probabilities = influence_learner.mc_sampling(seeds,n_episodes)
-    print(', '.join([str(d) for d in nodes_probabilities]))
     
 

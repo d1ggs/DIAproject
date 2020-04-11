@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import os
-from const import FEATURE_MAX, ROOT_PROJECT_PATH
+from social_influence.const import FEATURE_MAX, ROOT_PROJECT_PATH
 
 
 

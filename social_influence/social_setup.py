@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import os
 
-from const import ROOT_PROJECT_PATH, MATRIX_PATH
+from social_influence.const import ROOT_PROJECT_PATH, MATRIX_PATH
 
 class SocialNetwork:
     def __init__(self,dataset,parameters, feature_max):
