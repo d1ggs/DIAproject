@@ -5,7 +5,7 @@ import os
 from social_influence.const import ROOT_PROJECT_PATH, MATRIX_PATH
 
 class SocialNetwork:
-    def __init__(self,dataset,parameters, feature_max):
+    def __init__(self, dataset, parameters, feature_max):
         '''
         Features in a Social Network are: Tag, Share, Like, Message, Comment
         They are saved in self.features as a numpy array, ordered as written above (self.features[0] -> Tag...)
