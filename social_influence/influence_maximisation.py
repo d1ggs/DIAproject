@@ -6,6 +6,17 @@ from abc import ABC, abstractmethod
 from social_influence.mc_sampling import MonteCarloSampling
 
 class SingleInfluenceLearner(ABC):
+    """
+    Abstract Class that represent a Influence Maximisation learner for a single Social Network
+
+    Attributes
+    --------
+    prob_matrix : Edge Activation Probabilities matrix
+
+    n_nodes : number of nodes in the graph
+
+    budget : budget for the the social network
+    """
     def __init__(self, prob_matrix, n_nodes : int, budget: int):
         self.prob_matrix = prob_matrix
         self.n_nodes = n_nodes
@@ -21,21 +32,40 @@ class GreedyLearner(SingleInfluenceLearner):
 
         sampler = MonteCarloSampling(self.prob_matrix)
 
-        
-        
+        nodes = [d for d in range(0,self.n_nodes)]
+
+        max_influence = 0
+        best_seeds = np.zeros(self.n_nodes)
+        for i in range(self.budget):
+            best_marginal_increase = 0
+            step_influence = max_influence
+
+            for n in range(self.n_nodes):
+                if best_seeds[n] == 0:
+                    #computer marginal increase
+                    seeds = np.copy(best_seeds)
+                    seeds[n] = 1 #add current node to seeds
+
+                    #computer marginal increase
+                    nodes_probabilities = sampler.mc_sampling(seeds, montecarlo_simulations, n_steps_max)
+                    influence = np.sum(nodes_probabilities)
+
+                    marginal_increase = influence - step_influence
+
+                    if marginal_increase > best_marginal_increase:
+                        best_node = n
+                        best_marginal_increase = marginal_increase
+                        max_influence = influence
+
+            
+            best_seeds[best_node] = 1
+
+        return best_seeds, max_influence
 
         
 class ExactSolutionLearner(SingleInfluenceLearner):
     """
     Exact Solution Influence Maximisation
-
-    Attributes
-    --------
-    prob_matrix : Probability Matrix object
-
-    n_nodes : number of nodes
-
-    budget : budget for the the given social network
     """
     
     def fit(self, montecarlo_simulations : int, n_steps_max: int):

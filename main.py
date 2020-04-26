@@ -6,7 +6,7 @@ from social_influence.const import ROOT_PROJECT_PATH, MATRIX_PATH, FEATURE_MAX
 from social_influence.helper import Helper
 from social_influence.social_setup import SocialNetwork
 from social_influence.mc_sampling import MonteCarloSampling
-from social_influence.influence_maximisation import ExactSolutionLearner
+from social_influence.influence_maximisation import GreedyLearner
 from social_influence.utils import plot_approx_error_point2
 
 
@@ -25,7 +25,7 @@ if __name__ == "__main__":
     """
     
     #fake values used for debugging
-    n_nodes = 20
+    n_nodes = 1000
     prob_matrix = np.random.uniform(0.0,0.01,(n_nodes,n_nodes))
 
     #mc_sampler = MonteCarloSampling(prob_matrix)
@@ -36,7 +36,7 @@ if __name__ == "__main__":
     budget = 5
     monte_carlo_simulations = 3
     n_steps_max = 5
-    influence_learner = ExactSolutionLearner(prob_matrix,n_nodes,budget)
+    influence_learner = GreedyLearner(prob_matrix,n_nodes,budget)
 
     start = time.time()
     seeds, influence = influence_learner.fit(monte_carlo_simulations, n_steps_max)
