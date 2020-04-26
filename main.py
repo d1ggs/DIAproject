@@ -6,7 +6,7 @@ from social_influence.const import ROOT_PROJECT_PATH, MATRIX_PATH, FEATURE_MAX
 from social_influence.helper import Helper
 from social_influence.social_setup import SocialNetwork
 from social_influence.mc_sampling import MonteCarloSampling
-from social_influence.influence_maximisation import SingleInfluenceLearner
+from social_influence.influence_maximisation import ExactSolutionLearner
 from social_influence.utils import plot_approx_error_point2
 
 
@@ -36,16 +36,16 @@ if __name__ == "__main__":
     budget = 5
     monte_carlo_simulations = 3
     n_steps_max = 5
-    influence_learner = SingleInfluenceLearner(prob_matrix,n_nodes,budget)
+    influence_learner = ExactSolutionLearner(prob_matrix,n_nodes,budget)
 
     start = time.time()
-    seeds, sum_simulations = influence_learner.fit(monte_carlo_simulations, n_steps_max)
+    seeds, influence = influence_learner.fit(monte_carlo_simulations, n_steps_max)
     end = time.time()
     hours, rem = divmod(end-start, 3600)
     minutes, seconds = divmod(rem, 60)
-    print("Best Seeds: [%s] Result: %.2f" % (','.join(str(n) for n in seeds), sum_simulations.max()))
+    print("Best Seeds: [%s] Result: %.2f" % (','.join(str(n) for n in seeds), influence))
     print("Time Elapsed: %d:%d:%d" % (hours,minutes,seconds))
 
 
-    plot_name = 'appr_error_n%d_s%d_b%d' % (n_nodes, monte_carlo_simulations, budget)
-    plot_approx_error_point2(sum_simulations, plot_name)
+    #plot_name = 'appr_error_n%d_s%d_b%d' % (n_nodes, monte_carlo_simulations, budget)
+    #plot_approx_error_point2(sum_simulations, plot_name)

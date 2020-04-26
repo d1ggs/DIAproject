@@ -66,9 +66,9 @@ class MonteCarloSampling(object):
         n_steps_max : max number of steps in a episode
         """
         z = np.zeros(self.n_nodes)
-        occurr_v_active = np.zeros(self.n_nodes) #occurencies of each node in all episode
+        occurr_v_active = np.zeros(self.n_nodes) #occurencies of each node in all episodes
 
-        estimated_prob_for_simulation = [] #this array contains nodes activation probabilities, one simulation per row
+        #estimated_prob_for_simulation = [] #this array contains nodes activation probabilities, one simulation per row
         for n in range(1,n_episodes+1):
             episode = self.simulate_episode(seeds=seeds, n_steps_max=n_steps_max)
             n_steps = episode.shape[0]
@@ -77,7 +77,7 @@ class MonteCarloSampling(object):
                 if (len(np.argwhere(episode[:,i]==1))>0):  #this checks if node i activated in this episode
                     z[i]+=1
     
-            estimated_prob = z/n #estimated probabilities up to simulation n
-            estimated_prob_for_simulation.append(estimated_prob)
+        estimated_prob = z/n_episodes #estimated probabilities up to simulation n
+        #estimated_prob_for_simulation.append(estimated_prob)
 
-        return estimated_prob_for_simulation
+        return estimated_prob
