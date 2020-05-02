@@ -17,18 +17,19 @@ class SingleInfluenceLearner(ABC):
 
     budget : budget for the the social network
     """
-    def __init__(self, prob_matrix, n_nodes : int, budget: int):
+    def __init__(self, prob_matrix, n_nodes : int):
         self.prob_matrix = prob_matrix
         self.n_nodes = n_nodes
-        self.budget = budget
-    
+
     @abstractmethod
     def fit(self):
         pass
 
 class GreedyLearner(SingleInfluenceLearner):
 
-    def fit(self, montecarlo_simulations : int, n_steps_max: int):
+    def fit(self, montecarlo_simulations: int, n_steps_max: int, budget: int):
+
+        self.budget = budget
 
         sampler = MonteCarloSampling(self.prob_matrix)
 
