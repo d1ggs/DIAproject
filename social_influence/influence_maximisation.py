@@ -20,7 +20,6 @@ class SingleInfluenceLearner(ABC):
     def __init__(self, prob_matrix, n_nodes : int):
         self.prob_matrix = prob_matrix
         self.n_nodes = n_nodes
-    
     @abstractmethod
     def fit(self):
         pass

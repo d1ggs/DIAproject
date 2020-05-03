@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 from social_influence.const import FEATURE_MAX, ROOT_PROJECT_PATH
-
+from tqdm import tqdm
 
 
 class Helper:
@@ -30,8 +30,8 @@ class Helper:
         dataset = dataset.to_numpy()
         social_nodes = dataset[:, :2]
         features = dataset[:, 2:]
-        return  social_nodes,  features
+        return social_nodes,  features
 
 if __name__ == "__main__":
-    helper = Helper("facebook_combined")
-    helper.write_full_dataset("facebook")
+    helper = Helper("gplus_combined")
+    helper.write_full_dataset("gplus")
