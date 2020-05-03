@@ -46,24 +46,27 @@ class GreedyLearner(SingleInfluenceLearner):
             best_marginal_increase = 0
             step_influence = max_influence
 
-            results = []
+            results_async = []
+            results=[]
             with Pool() as pool:
                 for n in range(self.n_nodes):
-                    result_async = pool.apply_async(self.pool_worker, args=(n, best_seeds, montecarlo_simulations, n_steps_max))
-                    results.append(result_async)
+                    r_async = pool.apply_async(self.pool_worker, args=(n, best_seeds, montecarlo_simulations, n_steps_max))
+                    results_async.append(r_async)
 
-                for r in results:
-                    n, influence = r.get()
+                for r in results_async:
+                    results.append(r.get())
 
-                    marginal_increase = influence - step_influence
+            for res in results:
+                n,influence = res     
+                marginal_increase = influence - step_influence
 
-                    if marginal_increase > best_marginal_increase:
-                        best_node = n
-                        best_marginal_increase = marginal_increase
-                        max_influence = influence
-                #pool.close()
+                if marginal_increase > best_marginal_increase:
+                    best_node = n
+                    best_marginal_increase = marginal_increase
+                    max_influence = influence
             
             best_seeds[best_node] = 1
+            print("Node with best marginal increase at step %d: %d" % (i+1, best_node))
 
         return best_seeds, max_influence
         
@@ -105,9 +108,11 @@ class GreedyLearner(SingleInfluenceLearner):
                         best_node = n
                         best_marginal_increase = marginal_increase
                         max_influence = influence
-
+                if n%100==0:
+                    print("Analysing node: %d of %d" % (n, self.n_nodes))
             
             best_seeds[best_node] = 1
+            print("Node with best marginal increase at step %d: %d" % (i+1, best_node))
 
         return best_seeds, max_influence
 
