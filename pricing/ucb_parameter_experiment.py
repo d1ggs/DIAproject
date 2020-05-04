@@ -13,7 +13,7 @@ n_arms = len(arms)
 n_experiments = 50
 
 
-c_list = [0.15, 0.2, 0.25, 0.3]
+c_list = [0.2, 0.3, 0.5, 0.7, 0.9, 1]
 
 reward_per_experiment_ucb = []
 reward_per_experiment_ts = []
