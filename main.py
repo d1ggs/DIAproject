@@ -13,33 +13,30 @@ from social_influence.utils import plot_approx_error_point2
 if __name__ == "__main__": 
     
     #Simulate Social Network
-    """
+    
     parameters = np.array([[0.1, 0.3, 0.2, 0.2,0.2],[0.4, 0.1, 0.2, 0.2,0.1],[0.5, 0.1, 0.1, 0.1,0.2]]) #parameters for each social
     
-    helper = Helper()
-    dataset = helper.read_dataset()
+    helper = Helper("facebook_combined")
+    dataset = helper.read_dataset("facebook")
 
     social = SocialNetwork(dataset,parameters[0], FEATURE_MAX)
-    prob_matrix = social.get_matrix()
+    prob_matrix = social.get_matrix().copy()
     n_nodes = prob_matrix.shape[0]
-    """
     
     #fake values used for debugging
-    n_nodes = 1000
-    prob_matrix = np.random.uniform(0.0,0.01,(n_nodes,n_nodes))
+    # n_nodes = 300
+    # prob_matrix = np.random.uniform(0.0,0.01,(n_nodes,n_nodes))
 
     #mc_sampler = MonteCarloSampling(prob_matrix)
-    
-    
 
-
+    print("Nodes #: %d" % n_nodes)
     budget = 5
     monte_carlo_simulations = 3
     n_steps_max = 5
     influence_learner = GreedyLearner(prob_matrix,n_nodes)
 
     start = time.time()
-    seeds, influence = influence_learner.fit(monte_carlo_simulations, n_steps_max, budget)
+    seeds, influence = influence_learner.parallel_fit(budget,monte_carlo_simulations, n_steps_max)
     end = time.time()
     hours, rem = divmod(end-start, 3600)
     minutes, seconds = divmod(rem, 60)
