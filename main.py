@@ -36,10 +36,10 @@ if __name__ == "__main__":
     budget = 5
     monte_carlo_simulations = 3
     n_steps_max = 5
-    influence_learner = GreedyLearner(prob_matrix,n_nodes,budget)
+    influence_learner = GreedyLearner(prob_matrix,n_nodes)
 
     start = time.time()
-    seeds, influence = influence_learner.fit(monte_carlo_simulations, n_steps_max)
+    seeds, influence = influence_learner.fit(monte_carlo_simulations, n_steps_max, budget)
     end = time.time()
     hours, rem = divmod(end-start, 3600)
     minutes, seconds = divmod(rem, 60)
