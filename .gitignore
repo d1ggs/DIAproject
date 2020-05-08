@@ -131,3 +131,7 @@ dmypy.json
 .idea/
 
 .DS_Store
+
+.vscode
+#social influence data
+social_influence/data/matrix.npy

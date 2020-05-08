@@ -1,8 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from LinearMabEnvironment import *
-from LinUcbLearner import *
+from tutorials.social_influence.LinearMabEnvironment import LinearMabEnvironment
+from tutorials.social_influence.LinUcbLearner import LinUcbLearner
 
+#arm corresponds to an activated edge?
 n_arms = 10
 T = 1000
 n_experiments = 100
@@ -12,7 +13,7 @@ env = LinearMabEnvironment(n_arms=n_arms, dim=10)
 
 for e in range(0, n_experiments):
     lin_ucb_learner = LinUcbLearner(arms_features=env.arms_features)
-    #next iterate over all arms
+    #next iterate over all rounds
     for t in range(0, T):
         pulled_arms = lin_ucb_learner.pull_arm()
         reward = env.round(pulled_arms)
