@@ -1,19 +1,31 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import trange
+import json
 
 from pricing.environments import NonStationaryEnvironment
 from pricing.learners.ts_learner import TSLearner
 from pricing.learners.swts_learner import SWTSLearner
 
-from pricing.conversion_rate_product_2 import Product2Season1, Product2Season2, Product2Season3
+from pricing.conversion_rate import ProductConversionRate
 
 from pricing.learners.UCBLearner import SWUCBLearner
 
+N_ARMS = 10
+PRICES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-n_arms = 10
-prices = [1,2,3,4,5,6,7,8,9,10]
-curves = [Product2Season1(n_arms),Product2Season2(n_arms),Product2Season3(n_arms)]
+curves = []
+
+with open("products/products.json", 'r') as productfile:
+    p_info = json.load(productfile)
+    productfile.close()
+
+    p_2 = p_info["products"][1]
+    p_id = p_2["product_id"]
+    for season in p_2["seasons"]:
+        s_id = season["season_id"]
+        y = season["y_values"]
+        curves.append(ProductConversionRate(p_id, s_id, N_ARMS, y))
 
 #prices = [1000,1100,1200,1300,1400,1500]
 arms = [0, 1, 2, 3, 4,5,6,7,8,9]
@@ -29,19 +41,19 @@ ts_regrets_per_experiment = []
 
 window_size = 4 * int(np.sqrt(T))
 
-NonStationaryEnvironment(arms=arms, curves=curves, horizon=T, prices=prices).plot()
+NonStationaryEnvironment(curves=curves, horizon=T, prices=PRICES).plot()
 
 for e in trange(n_experiments):
 
     # Reset the environments
-    ts_env = NonStationaryEnvironment(arms=arms, curves=curves, horizon=T, prices=prices)
-    ts_learner = TSLearner(n_arms=n_arms, prices=prices)
+    ts_env = NonStationaryEnvironment(curves=curves, horizon=T, prices=PRICES)
+    ts_learner = TSLearner(n_arms=N_ARMS, prices=PRICES)
 
-    swts_env = NonStationaryEnvironment(arms=arms, curves=curves, horizon=T, prices=prices)
-    swts_learner = SWTSLearner(n_arms=n_arms, window_size=window_size, prices=prices)
+    swts_env = NonStationaryEnvironment(curves=curves, horizon=T, prices=PRICES)
+    swts_learner = SWTSLearner(n_arms=N_ARMS, window_size=window_size, prices=PRICES)
 
-    swucb_env = NonStationaryEnvironment(arms=arms, curves=curves, horizon=T, prices=prices)
-    swucb_learner = SWUCBLearner(n_arms=n_arms, horizon=T, prices=prices)
+    swucb_env = NonStationaryEnvironment(curves=curves, horizon=T, prices=PRICES)
+    swucb_learner = SWUCBLearner(n_arms=N_ARMS, horizon=T, prices=PRICES)
 
     regrets_swts_per_timestep = []
     regrets_swucb_per_timestep = []
