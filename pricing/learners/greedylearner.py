@@ -1,6 +1,6 @@
 import numpy as np
 
-from tutorials.pricing.learners.learner import Learner
+from pricing import Learner
 
 
 class GreedyLearner(Learner):

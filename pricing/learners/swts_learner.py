@@ -1,18 +1,19 @@
-from tutorials.pricing.learners.ts_learner import TSLearner
+from pricing.learners.ts_learner import TSLearner
 import numpy as np
 
 
 class SWTSLearner(TSLearner):
     """Implements a Sliding-Window Thompson Sampling learner"""
 
-    def __init__(self, n_arms: int, window_size: int):
+    def __init__(self, n_arms: int, window_size: int, prices: list):
         """
         :param n_arms: the number of arms in the setting
         :param window_size: the number of samples that are to be considered when updating distributions
         """
-        super().__init__(n_arms)
+        super().__init__(n_arms, prices)
         self.window_size = window_size
         self.pulled_arms = np.array([])
+
 
     def update(self, pulled_arm: int, reward: float):
         """

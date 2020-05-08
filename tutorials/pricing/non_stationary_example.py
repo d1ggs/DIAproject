@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from tutorials.pricing.environments import NonStationaryEnvironment
-from tutorials.pricing.learners.ts_learner import TSLearner
-from tutorials.pricing.learners.swts_learner import SWTSLearner
+from pricing.environments import NonStationaryEnvironment
+from pricing.learners.ts_learner import TSLearner
+from pricing import SWTSLearner
 
 
 n_arms = 4

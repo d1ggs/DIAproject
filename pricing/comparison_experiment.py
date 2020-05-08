@@ -2,15 +2,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import trange
 
-from tutorials.pricing.environments import StationaryEnvironment
-from tutorials.pricing.learners.ts_learner import TSLearner
-from tutorials.pricing.learners.greedylearner import GreedyLearner
+from pricing.environments import StationaryEnvironment
+from pricing.learners.ts_learner import TSLearner
+from pricing import GreedyLearner
 
 n_arms = 4
 p = np.array([0.15, 0.1, 0.1, 0.35])
 opt = p[3]
 
-T = 1000
+T = 100
 
 n_experiments = 300
 
