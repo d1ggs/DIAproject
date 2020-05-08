@@ -11,13 +11,15 @@ from pricing.conversion_rate_product_2 import Product2Season1, Product2Season2, 
 from pricing.learners.UCBLearner import SWUCBLearner
 
 
-n_arms = 6
-curves = [Product2Season1(), Product2Season2(), Product2Season3()]
-prices = [1,3,5,6,7,10]
-#prices = [1000,1100,1200,1300,1400,1500]
-arms = [0, 1, 2, 3, 4, 5]
+n_arms = 10
+prices = [1,2,3,4,5,6,7,8,9,10]
+curves = [Product2Season1(n_arms),Product2Season2(n_arms),Product2Season3(n_arms)]
 
-T = 500
+#prices = [1000,1100,1200,1300,1400,1500]
+arms = [0, 1, 2, 3, 4,5,6,7,8,9]
+
+
+T = 100
 
 n_experiments = 300
 
@@ -26,6 +28,7 @@ swts_regrets_per_experiment = []
 ts_regrets_per_experiment = []
 
 window_size = 4 * int(np.sqrt(T))
+
 NonStationaryEnvironment(arms=arms, curves=curves, horizon=T, prices=prices).plot()
 
 for e in trange(n_experiments):
@@ -57,7 +60,6 @@ for e in trange(n_experiments):
         ts_learner.update(pulled_arm, reward)
 
         instantaneous_regret = ts_env.get_inst_regret(pulled_arm)
-        assert instantaneous_regret>=0, 'error'
         cumulative_regret_ts += instantaneous_regret
         regrets_ts_per_timestep.append(cumulative_regret_ts)
 
@@ -118,6 +120,6 @@ plt.ylabel("Regret")
 plt.xlabel("t")
 plt.plot(np.mean(ts_regrets_per_experiment, axis=0), 'r')
 plt.plot(np.mean(swts_regrets_per_experiment, axis=0), 'b')
-# plt.plot(np.mean(swucb_regrets_per_experiment, axis=0), 'g')
+#plt.plot(np.mean(swucb_regrets_per_experiment, axis=0), 'g')
 plt.legend(["TS", "SW-TS", "SW-UCB"])
 plt.show()
