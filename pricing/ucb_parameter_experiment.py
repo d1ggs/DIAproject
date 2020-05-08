@@ -1,30 +1,41 @@
+import json
+
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import trange, tqdm
 
-from pricing.environments import EnvironmentUCB
+from pricing.conversion_rate import ProductConversionRate
+from pricing.environments import StationaryEnvironment
 from pricing.learners.UCBLearner import UCBLearner
 from pricing.learners.ts_learner import TSLearner
 
-prices = [63, 76, 10, 8, 53, 21]
+PRICES = [63, 76, 10, 8, 53, 21]
 T = 1000
-arms = [0, 1, 2, 3, 4, 5]
-n_arms = len(arms)
-n_experiments = 50
+N_ARMS = len(PRICES)
+N_EXPERIMENTS = 50
+C_LIST = [0.2, 0.3, 0.5, 0.7, 0.9, 1]
 
+with open("products/products.json", 'r') as productfile:
+    p_info = json.load(productfile)
+    productfile.close()
 
-c_list = [0.2, 0.3, 0.5, 0.7, 0.9, 1]
+p_2 = p_info["products"][1]
+p_id = p_2["product_id"]
+seasons = p_2["seasons"]
+s_id = seasons[0]["season_id"]
+y = seasons[0]["y_values"]
+curve = ProductConversionRate(p_id, s_id, N_ARMS, y)
 
 reward_per_experiment_ucb = []
 reward_per_experiment_ts = []
-env = EnvironmentUCB(arms=arms, prices=prices)
+env = StationaryEnvironment(prices=PRICES, curve=curve)
 
 regret_per_experiment_ts = []
 
 print("Evaluating Thompson Sampling")
 
-for e in trange(n_experiments):
-    ts_learner = TSLearner(n_arms, prices)
+for e in trange(N_EXPERIMENTS):
+    ts_learner = TSLearner(N_ARMS, PRICES)
 
     cumulative_regret_ts = 0
 
@@ -51,11 +62,11 @@ regret_per_parameter_ucb = []
 
 print("\nEvaluating UCB")
 
-for c in tqdm(c_list):
+for c in tqdm(C_LIST):
     regret_per_experiment_ucb = []
 
-    for e in range(n_experiments):
-        ucb_learner = UCBLearner(n_arms, prices, constant=c)
+    for e in range(N_EXPERIMENTS):
+        ucb_learner = UCBLearner(N_ARMS, PRICES, constant=c)
 
         cumulative_regret_ucb = 0
 
@@ -81,7 +92,7 @@ for c in tqdm(c_list):
 
     regret_per_parameter_ucb.append(np.mean(regret_per_experiment_ucb, axis=0))
 
-labels = ["UCB, c = " + str(c) for c in c_list]
+labels = ["UCB, c = " + str(c) for c in C_LIST]
 labels.append("TS")
 
 plt.figure()

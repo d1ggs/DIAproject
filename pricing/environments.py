@@ -1,25 +1,41 @@
 import numpy as np
 import math
-from pricing.conversion_rate import Product1Season1
 import matplotlib.pyplot as plt
+from pricing.conversion_rate import ProductConversionRate
+from abc import ABC
 
 
-class StationaryEnvironment(object):
+class Environment(ABC):
+    def round(self, pulled_arm: int):
+        pass
+
+    def opt_reward(self):
+        pass
+
+    def get_inst_regret(self, arm):
+        pass
+
+    def plot(self):
+        pass
+
+
+class StationaryEnvironment(Environment):
     """
     Models a stationary MAB setting, storing probabilities of success for each arm and providing
     stochastic rewards for each arm
     """
 
-    def __init__(self, n_arms: int, probabilities: np.ndarray):
+    def __init__(self, prices: list, curve: ProductConversionRate):
         """
-        :param n_arms: the number of arms of the MAB setting
-        :param probabilities: the success probability for each Bernoulli distribution associated to an arm
+        :param prices: the number of arms of the MAB setting
+        :param curve: object responsible for computing the conversion rate probabilities
         """
 
         super().__init__()
-        self.n_arms = n_arms
-        self.probabilities = probabilities
-
+        self.n_arms = len(prices)
+        self.arms = np.arange(self.n_arms)
+        self.prices = prices
+        self.curve = curve
 
     def round(self, pulled_arm: int):
         """
@@ -29,51 +45,41 @@ class StationaryEnvironment(object):
         :return: the sampled reward for the pulled arm
 
         """
-        reward = np.random.binomial(1, self.probabilities[
-            pulled_arm])  # The first parameter is 1 because it is a Bernoulli
-        return reward
 
-
-
-
-
-class EnvironmentUCB(object):
-
-    def __init__(self, arms: list, prices: list):
-        self.arms = arms
-        self.prices = prices
-        self.n_arms = len(self.arms)
-        self.curve = Product1Season1()
-        tmp = []
-        for i in range(len(self.arms)):
-            tmp.append(self.curve.get_probability(self.arms[i]) * self.prices[i])
-        self.opt_reward = np.max(tmp)
-
-
-    def round(self, pulled_arm):
-        # print(pulled_arm, self.curve.get_probability(pulled_arm))
         cr = self.curve.get_probability(pulled_arm)
         return np.random.binomial(1, cr)
 
+    def opt_reward(self):
+        tmp = []
+        for i in range(self.n_arms):
+            tmp.append(self.curve.get_probability(self.arms[i]) * self.prices[i])
+
+        return np.max(tmp)
+
+    def plot(self):
+        """Plot the conversion rate curve"""
+        self.curve.plot()
+
     def get_inst_regret(self, arm):
-        return self.opt_reward - self.prices[arm] * self.curve.get_probability(arm)
+        return self.opt_reward() - self.prices[arm] * self.curve.get_probability(arm)
 
 
-class NonStationaryEnvironment(object):
+class NonStationaryEnvironment(Environment):
     """
     Models a non-stationary MAB setting, storing probabilities of success for each arm and providing
     stochastic rewards for each arm
     """
 
-    def __init__(self, arms: list, prices: list, curves: list, horizon: int):
+    def __init__(self, prices: list, curves: list, horizon: int):
+
         """
-        :param n_arms, the number of arms of the MAB setting
-        :param probabilities, the success probability for each Bernoulli distribution associated to an arm
+        :param prices: the list of prices to be proposed to customers
+        :param curves: the list of conversion rate curves, one for each seasonality
         :param horizon: the maximum amount of time steps before the computation stops
         """
 
-        self.n_arms = len(arms)
-        self.arms = arms
+        self.n_arms = len(prices)
+        self.arms = np.arange(self.n_arms)
         self.curves = curves
         self.prices = prices
 
@@ -82,8 +88,7 @@ class NonStationaryEnvironment(object):
 
         n_phases = len(self.curves)  # The number of phases is equal to the number of arms
         self.phase_size = math.ceil(self.horizon / n_phases)  # Assuming that all phases have the same size
-        self.current_phase=0
-
+        self.current_phase = 0
 
     def round(self, pulled_arm):
         """
@@ -99,15 +104,14 @@ class NonStationaryEnvironment(object):
         return np.random.binomial(1, cr)
 
     def opt_reward(self):
-
         tmp = []
         for i in range(self.n_arms):
             tmp.append(self.curves[self.current_phase].get_probability(self.arms[i]) * self.prices[i])
 
         return np.max(tmp)
 
-    def get_inst_regret(self,arm):
-        return self.opt_reward()-self.prices[arm]*self.curves[self.current_phase].get_probability(arm)
+    def get_inst_regret(self, arm):
+        return self.opt_reward() - self.prices[arm] * self.curves[self.current_phase].get_probability(arm)
 
     def plot(self):
         plot_expected = []
@@ -123,6 +127,5 @@ class NonStationaryEnvironment(object):
         for plot in plot_expected:
             plt.plot(plot)
 
-        plt.legend(["phase "+str(i) for i in range(len(self.curves))])
+        plt.legend(["phase " + str(i) for i in range(len(self.curves))])
         plt.show()
-
