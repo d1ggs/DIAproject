@@ -66,7 +66,7 @@ class GreedyLearner(SingleInfluenceLearner):
                 n, influence = res
                 marginal_increase = influence - step_influence
 
-                if marginal_increase > best_marginal_increase:
+                if marginal_increase >= best_marginal_increase:
                     best_node = n
                     best_marginal_increase = marginal_increase
                     max_influence = influence
@@ -109,7 +109,7 @@ class GreedyLearner(SingleInfluenceLearner):
 
                     marginal_increase = influence - step_influence
 
-                    if marginal_increase > best_marginal_increase:
+                    if marginal_increase >= best_marginal_increase:
                         best_node = n
                         best_marginal_increase = marginal_increase
                         max_influence = influence
@@ -158,7 +158,7 @@ class ExactSolutionLearner(SingleInfluenceLearner):
             # the best seed is the one where the sum of probabilities is the highest
             influence = np.sum(nodes_probabilities)
 
-            if (influence > max_influence):
+            if (influence >= max_influence):
                 max_influence = influence
                 best_seeds = seeds
 
