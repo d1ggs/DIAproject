@@ -3,6 +3,7 @@ import pandas as pd
 import os
 
 from social_influence.const import ROOT_PROJECT_PATH, MATRIX_PATH
+MAX_NODES = 300
 
 class SocialNetwork:
     def __init__(self, dataset, parameters, feature_max):
@@ -34,7 +35,7 @@ class SocialNetwork:
             features = self.features[i]
             matrix[node_a,node_b] = self.compute_activation_prob(features)
 
-        
+        matrix = matrix[:MAX_NODES, :MAX_NODES]
         ##np.save(os.path.join(ROOT_PROJECT_PATH, MATRIX_PATH),matrix)
         return matrix
     
