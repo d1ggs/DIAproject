@@ -42,6 +42,6 @@ class IMLinUCBEnviroment():
         return n_activated_nodes, activated_edges
 
     def opt(self):
-        greedy_learner = GreedyLearner(self.prob_matrix,self.n_nodes,self.budget)
-        _ , best_reward = greedy_learner.fit(10,3)
+        greedy_learner = GreedyLearner(self.prob_matrix, self.n_nodes)
+        _ , best_reward = greedy_learner.fit(self.budget, 3, 3)
         return best_reward
