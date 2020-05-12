@@ -87,7 +87,7 @@ class NonStationaryEnvironment(Environment):
         self.horizon = horizon
 
         n_phases = len(self.curves)  # The number of phases is equal to the number of arms
-        self.phase_size = math.ceil(self.horizon / n_phases)  # Assuming that all phases have the same size
+        self.phase_size = math.ceil(self.horizon / n_phases)# Assuming that all phases have the same size
         self.current_phase = 0
 
     def round(self, pulled_arm):
@@ -99,9 +99,11 @@ class NonStationaryEnvironment(Environment):
         """
 
         cr = self.curves[self.current_phase].get_probability(pulled_arm)
-        self.t += 1
         self.current_phase = math.floor(self.t / self.phase_size)
         return np.random.binomial(1, cr)
+
+    def forward_time(self):
+        self.t += 1
 
     def opt_reward(self):
         tmp = []

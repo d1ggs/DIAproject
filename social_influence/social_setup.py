@@ -6,15 +6,16 @@ from social_influence.const import ROOT_PROJECT_PATH, MATRIX_PATH
 MAX_NODES = 300
 
 class SocialNetwork:
-    def __init__(self, dataset, parameters, feature_max):
-        '''
+    def __init__(self, dataset, parameters, feature_max, max_nodes=-1):
+        """
         Features in a Social Network are: Tag, Share, Like, Message, Comment
         They are saved in self.features as a numpy array, ordered as written above (self.features[0] -> Tag...)
-        '''
+        """
         
         self.social_edges, self.features = dataset
         self.parameters = parameters
         self.feature_max = feature_max
+        self.max_nodes = max_nodes
 
         assert(self.parameters.shape == self.features[0].shape)
         assert(np.sum(self.parameters)==1)
@@ -35,7 +36,9 @@ class SocialNetwork:
             features = self.features[i]
             matrix[node_a,node_b] = self.compute_activation_prob(features)
 
-        matrix = matrix[:MAX_NODES, :MAX_NODES]
+        if self.max_nodes > 0:
+            print("Reducing dataset matrix to {} x {} nodes".format(self.max_nodes, self.max_nodes))
+            matrix = matrix[:self.max_nodes, :self.max_nodes]
         ##np.save(os.path.join(ROOT_PROJECT_PATH, MATRIX_PATH),matrix)
         return matrix
     
