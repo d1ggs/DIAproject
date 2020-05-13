@@ -46,16 +46,17 @@ class GreedyLearner(SingleInfluenceLearner):
         best_seeds = np.zeros(self.n_nodes)
 
         for i in range(budget):
-            best_marginal_increase = 0
-            step_influence = max_influence
+            #best_marginal_increase = 0 
+            step_influence = 0
 
             results_async = []
             results = []
             with Pool() as pool:
                 for n in range(self.n_nodes):
-                    r_async = pool.apply_async(self.pool_worker,
-                                               args=(n, best_seeds, montecarlo_simulations, n_steps_max))
-                    results_async.append(r_async)
+                    if best_seeds[n] == 0:
+                        r_async = pool.apply_async(self.pool_worker,
+                                                args=(n, best_seeds, montecarlo_simulations, n_steps_max))
+                        results_async.append(r_async)
 
                 for r in results_async:
                     results.append(r.get())
@@ -64,14 +65,16 @@ class GreedyLearner(SingleInfluenceLearner):
 
             for res in results:
                 n, influence = res
-                marginal_increase = influence - step_influence
-
-                if marginal_increase >= best_marginal_increase:
+                #marginal_increase = influence - step_influence
+                
+                if influence >= step_influence:
                     best_node = n
-                    best_marginal_increase = marginal_increase
-                    max_influence = influence
+                    #best_marginal_increase = marginal_increase
+                    step_influence = influence
+
 
             best_seeds[best_node] = 1
+            max_influence = step_influence
             print("Node with best marginal increase at step %d: %d" % (i + 1, best_node))
 
         return best_seeds, max_influence
@@ -94,8 +97,8 @@ class GreedyLearner(SingleInfluenceLearner):
         max_influence = 0
         best_seeds = np.zeros(self.n_nodes)
         for i in range(budget):
-            best_marginal_increase = 0
-            step_influence = max_influence
+            #best_marginal_increase = 0
+            step_influence = 0
 
             for n in range(self.n_nodes):
                 if best_seeds[n] == 0:
@@ -107,16 +110,17 @@ class GreedyLearner(SingleInfluenceLearner):
                     nodes_probabilities = sampler.mc_sampling(seeds, montecarlo_simulations, n_steps_max)
                     influence = np.sum(nodes_probabilities)
 
-                    marginal_increase = influence - step_influence
+                    #marginal_increase = influence - step_influence
 
-                    if marginal_increase >= best_marginal_increase:
+                    if influence >= step_influence:
                         best_node = n
-                        best_marginal_increase = marginal_increase
-                        max_influence = influence
+                        #best_marginal_increase = marginal_increase
+                        step_influence = influence
                 if n % 100 == 0:
                     print("Analysing node: %d of %d" % (n, self.n_nodes))
 
             best_seeds[best_node] = 1
+            max_influence = step_influence
             print("Node with best marginal increase at step %d: %d" % (i + 1, best_node))
 
         return best_seeds, max_influence
