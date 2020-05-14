@@ -23,24 +23,33 @@ if __name__ == "__main__":
     parser.add_argument("--budget", default=5, type=int, help="Specify budget")
     args = parser.parse_args()
 
+    monte_carlo_simulations = args.mc
+    n_steps_max = args.steps
+    budget = args.budget
+
     parameters = np.asarray(
         ((0.1, 0.3, 0.2, 0.2, 0.2), (0.3, 0.1, 0.2, 0.2, 0.2), (0.5, 0.1, 0.1, 0.1, 0.2)))  # parameters for each social
 
     helper = Helper()
 
+    plot_name = "appr_error"
     # fake values used for debugging
     if args.test:
         n_nodes = 300
         prob_matrix = np.random.uniform(0.0,0.01,(n_nodes,n_nodes))
+        plot_name = plot_name+"_random"
     else:
         if args.fb:
             dataset = helper.read_dataset("facebook")
+            plot_name = plot_name+"_facebook"
         elif args.t:
             #TODO gplus has node values too high
             dataset = helper.read_dataset("gplus")
+            plot_name = plot_name+"_gplus"
         elif args.g:
             #TODO twitter has node values too high
             dataset = helper.read_dataset("twitter")
+            plot_name = plot_name+"_twitter"
         else:
             print("Error: specify which dataset to select. Rerun with --help for info")
             exit(-1)
@@ -52,9 +61,6 @@ if __name__ == "__main__":
 
 
     print("Nodes #: %d" % n_nodes)
-    monte_carlo_simulations = args.mc
-    n_steps_max = args.steps
-    budget = args.budget
     influence_learner = GreedyLearner(prob_matrix, n_nodes)
 
     start = time.time()
@@ -79,6 +85,7 @@ if __name__ == "__main__":
     print("Training completed")
     print("Time Elapsed: %d:%d:%d" % (hours, minutes, seconds))
 
-    plot_approx_error(results,infl_max_mc ,"plot_appr_error")
+
+    plot_approx_error(results,infl_max_mc ,plot_name=plot_name)
 
     print("Best Seeds: [%s] Result: %.2f" % (','.join(str(int(n)) for n in seeds), influence))
