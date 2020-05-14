@@ -7,15 +7,15 @@ from tqdm import tqdm
 
 class Helper:
 
-    def __init__(self, dataset):
+    def __init__(self, dataset: str = None):
         '''
         Data are loaded from Stanford's SNAP Facebook dataset, where the edges are undirected. This is not a problem,
         since in FB it's reasonable to have undirected graphs, while for IG and Twitter we can assume this graph to be
         directed from first node to the last.
 
         '''
-
-        self.social_network_data = pd.read_csv(os.path.join(ROOT_PROJECT_PATH, "data/" + dataset + ".txt"), sep=" ", header=None)
+        if dataset != None:
+            self.social_network_data = pd.read_csv(os.path.join(ROOT_PROJECT_PATH, "data/" + dataset + ".txt"), sep=" ", header=None)
 
     def write_full_dataset(self, dataset):
 
