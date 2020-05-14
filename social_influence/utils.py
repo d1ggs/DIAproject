@@ -22,7 +22,7 @@ def plot_approx_error(result_simulations : List[Dict[str, Any]], infl_max_mc : f
         infl_y.append(r["influence"])
     
     infl_y = [y-infl_max_mc for y in infl_y]
-    print(sim_x, infl_y)
+    
     # plotting the points  
     plt.plot(sim_x, infl_y) 
     

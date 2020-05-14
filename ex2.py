@@ -28,26 +28,28 @@ if __name__ == "__main__":
 
     helper = Helper()
 
-    if args.fb:
-        dataset = helper.read_dataset("facebook")
-    elif args.t:
-        dataset = helper.read_dataset("gplus")
-    elif args.g:
-        dataset = helper.read_dataset("twitter")
-    else:
-        print("Error: specify which dataset to select. Rerun with --help for info")
-        exit(-1)
-
-
-    social = SocialNetwork(dataset, parameters[0], FEATURE_MAX)
-    matrix = social.get_matrix().copy()
-    n_nodes = matrix.shape[0]
-
-    
     # fake values used for debugging
     if args.test:
         n_nodes = 300
         prob_matrix = np.random.uniform(0.0,0.01,(n_nodes,n_nodes))
+    else:
+        if args.fb:
+            dataset = helper.read_dataset("facebook")
+        elif args.t:
+            #TODO gplus has node values too high
+            dataset = helper.read_dataset("gplus")
+        elif args.g:
+            #TODO twitter has node values too high
+            dataset = helper.read_dataset("twitter")
+        else:
+            print("Error: specify which dataset to select. Rerun with --help for info")
+            exit(-1)
+
+
+        social = SocialNetwork(dataset, parameters[0], FEATURE_MAX)
+        prob_matrix = social.get_matrix().copy()
+        n_nodes = prob_matrix.shape[0]
+
 
     print("Nodes #: %d" % n_nodes)
     monte_carlo_simulations = args.mc
