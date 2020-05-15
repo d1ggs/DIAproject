@@ -27,6 +27,7 @@ if __name__ == "__main__":
     n_steps_max = args.steps
     budget = args.budget
 
+    #TODO include feature weights directly in the dataset?
     parameters = np.asarray(
         ((0.1, 0.3, 0.2, 0.2, 0.2), (0.3, 0.1, 0.2, 0.2, 0.2), (0.5, 0.1, 0.1, 0.1, 0.2)))  # parameters for each social
 
@@ -41,21 +42,24 @@ if __name__ == "__main__":
     else:
         if args.fb:
             dataset = helper.read_dataset("facebook")
+            param = parameters[0]
             plot_name = plot_name+"_facebook"
         elif args.t:
             #TODO gplus has node values too high
             dataset = helper.read_dataset("gplus")
+            param = parameters[1]
             plot_name = plot_name+"_gplus"
         elif args.g:
             #TODO twitter has node values too high
             dataset = helper.read_dataset("twitter")
+            param = parameters[2]
             plot_name = plot_name+"_twitter"
         else:
             print("Error: specify which dataset to select. Rerun with --help for info")
             exit(-1)
 
 
-        social = SocialNetwork(dataset, parameters[0], FEATURE_MAX)
+        social = SocialNetwork(dataset, param, FEATURE_MAX)
         prob_matrix = social.get_matrix().copy()
         n_nodes = prob_matrix.shape[0]
 
@@ -64,16 +68,12 @@ if __name__ == "__main__":
     influence_learner = GreedyLearner(prob_matrix, n_nodes)
 
     start = time.time()
-    results = []
     
+    results = {}
     # Plot the approximation error as the parameters of the algorithms vary for every specific network.
     for i in range(1,monte_carlo_simulations+1):
         seeds, influence = influence_learner.parallel_fit(budget, montecarlo_simulations=i, n_steps_max=n_steps_max)
-        r_dict = {}
-        r_dict["sim"] = i
-        r_dict["seeds"] = seeds
-        r_dict["influence"] = influence
-        results.append(r_dict)
+        results[i] = influence
 
         if i == monte_carlo_simulations:
             seeds_max_mc = seeds
@@ -88,4 +88,4 @@ if __name__ == "__main__":
 
     plot_approx_error(results,infl_max_mc ,plot_name=plot_name)
 
-    print("Best Seeds: [%s] Result: %.2f" % (','.join(str(int(n)) for n in seeds), influence))
+    print("Best Seeds: [%s] Result: %.2f" % (','.join(str(int(n)) for n in seeds_max_mc), infl_max_mc))
