@@ -44,7 +44,8 @@ class GreedyLearner(SingleInfluenceLearner):
 
         max_influence = 0
         best_seeds = np.zeros(self.n_nodes)
-
+        
+        print("Start Greedy Influence Maximisation with budget: %d, mc_simulations: %d, n_steps_max: %d" % (budget, montecarlo_simulations, n_steps_max))
         for i in range(budget):
             #best_marginal_increase = 0 
             step_influence = 0
@@ -77,6 +78,7 @@ class GreedyLearner(SingleInfluenceLearner):
             max_influence = step_influence
             print("Node with best marginal increase at step %d: %d" % (i + 1, best_node))
 
+        print('-'*100)
         return best_seeds, max_influence
 
     def fit(self, budget: int, montecarlo_simulations: int, n_steps_max: int):
