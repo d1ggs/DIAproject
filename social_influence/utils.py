@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from typing import List,Dict, Any
 from pathlib import Path
 
-def plot_approx_error(result_simulations : Dict[int, int], infl_max_mc : float, plot_name : str):
+def plot_approx_error(result_simulations : Dict[int, float], infl_max_mc : float, plot_name : str):
     """
     This function plots the approximation error as the parameters of the algorithms vary for every specific network. 
     The parameter is the number of monte_carlo_simulations
