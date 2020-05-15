@@ -35,7 +35,7 @@ regret_per_experiment_ts = []
 print("Evaluating Thompson Sampling")
 
 for e in trange(N_EXPERIMENTS):
-    ts_learner = TSLearner(N_ARMS, PRICES)
+    ts_learner = TSLearner(PRICES)
 
     cumulative_regret_ts = 0
 

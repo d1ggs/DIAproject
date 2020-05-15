@@ -5,15 +5,16 @@ import numpy as np
 class SWTSLearner(TSLearner):
     """Implements a Sliding-Window Thompson Sampling learner"""
 
-    def __init__(self, n_arms: int, horizon: int, prices: list):
+    def __init__(self, prices: list, horizon: int, const: int):
         """
         :param n_arms: the number of arms in the setting
         :param horizon: the number of samples that are to be considered when updating distributions
+        :param const: adjustment constant to consider the fact that at each time step we pull more than once
         """
-        super().__init__(n_arms, prices)
-        self.window_size = 4 * int(np.sqrt(horizon))
+        super().__init__(prices)
+        self.window_size = 4 * int(np.sqrt(horizon * const))
         self.pulled_arms = np.array([])
-
+        print("SW-TS using window size:", self.window_size)
 
     def update(self, pulled_arm: int, reward: float):
         """

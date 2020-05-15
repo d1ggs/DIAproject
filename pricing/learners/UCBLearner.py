@@ -25,12 +25,20 @@ class UCBLearner(Learner):
 
 class SWUCBLearner(UCBLearner):
     """Class implementing SW-UCB# state-of-the-art bandit for non-stationary contexts"""
-    def __init__(self, n_arms: int, horizon: int, prices: list, alpha=2):
+    def __init__(self, n_arms: int, horizon: int, prices: list, const: int, alpha=2):
+        """
+        :param n_arms: number of conversion rates to be learned
+        :param horizon: the number of samples that are to be considered when updating distributions
+        :param prices: the amount of money gained pulling each arm if the user buys
+        :param alpha: SW-UCB alpha parameter
+        :param const: adjustment constant to consider the fact that at each time step we pull more than once
+        """
         super().__init__(n_arms, prices)
-        self.horizon = horizon
+        self.horizon = horizon * const
         self.alpha = alpha
         self.pulls = []
-        self.tau = int(4 * np.sqrt(horizon * np.log(horizon)))
+        self.tau = int(4 * np.sqrt(self.horizon * np.log(self.horizon)))
+        print("SW-UCB using window size:", self.tau)
 
     def get_times_pulled(self, arm):
         """Compute how many times an arm has been pulled inside the sliding window"""
@@ -47,7 +55,7 @@ class SWUCBLearner(UCBLearner):
     def update(self, pulled_arm, reward):
         """Update the confidence bounds over the arms"""
         self.pulls.append(pulled_arm)
-        self.update_observations(pulled_arm, reward)
+        self.update_observations(pulled_arm, reward * self.prices[pulled_arm])
         self.t += 1
 
         # Compute the empirical mean only for those pulls that are in the window
@@ -58,4 +66,4 @@ class SWUCBLearner(UCBLearner):
         c = np.sqrt(self.alpha * np.log(min(self.t, self.tau))/self.get_times_pulled(pulled_arm))
 
         # Update the overall bound
-        self.upper_bounds[pulled_arm] = r + self.const * c
+        self.upper_bounds[pulled_arm] = r + self.const * c * self.prices[pulled_arm]

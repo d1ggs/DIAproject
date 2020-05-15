@@ -18,22 +18,23 @@ from social_influence.helper import Helper
 from social_influence.social_setup import SocialNetwork
 from social_influence.mc_sampling import MonteCarloSampling
 from social_influence.influence_maximisation import GreedyLearner
-from social_influence.utils import plot_approx_error_point2
 
 # Social influence constants
-MAX_NODES = 300
+MAX_NODES = 600
 TOTAL_BUDGET = 100
 
 if __name__ == "__main__":
 
     # TODO divide budget among social networks
 
-    budget_1, budget_2, budget_3 = 10, 10, 10
+    budget_1, budget_2, budget_3 = 3, 10, 10
 
     # Simulate Social Network
 
     parameters = np.array(
-        [[0.1, 0.3, 0.2, 0.2, 0.2], [0.4, 0.1, 0.2, 0.2, 0.1], [0.5, 0.1, 0.1, 0.1, 0.2]])  # parameters for each social
+        [[0.1, 0.3, 0.2, 0.2, 0.2],
+         [0.4, 0.1, 0.2, 0.2, 0.1],
+         [0.5, 0.1, 0.1, 0.1, 0.2]])  # parameters for each social
 
     helper = Helper("facebook_combined")
     dataset = helper.read_dataset("facebook")
@@ -70,80 +71,92 @@ if __name__ == "__main__":
 
     curves = []
 
-    p_2 = product_info["products"][1]
-    p_id = p_2["product_id"]
-    for season in p_2["seasons"]:
-        s_id = season["season_id"]
+    product = product_info["products"][1]
+    product_id = product["product_id"]
+    for season in product["seasons"]:
+        season_id = season["season_id"]
         y = season["y_values"]
-        curves.append(ProductConversionRate(p_id, s_id, N_ARMS, y))
+        curves.append(ProductConversionRate(product_id, season_id, N_ARMS, y))
 
-    # Support variables
-    ts_env = NonStationaryEnvironment(curves=curves, horizon=TIME_HORIZON, prices=PRICES)
-    ts_learner = TSLearner(n_arms=N_ARMS, prices=PRICES)
+    for _ in trange(N_EXPERIMENTS):
 
-    swts_env = NonStationaryEnvironment(curves=curves, horizon=TIME_HORIZON, prices=PRICES)
-    swts_learner = SWTSLearner(n_arms=N_ARMS, horizon=TIME_HORIZON, prices=PRICES)
+        # TODO save data for each experiment
 
-    swucb_env = NonStationaryEnvironment(curves=curves, horizon=TIME_HORIZON, prices=PRICES)
-    swucb_learner = SWUCBLearner(n_arms=N_ARMS, horizon=TIME_HORIZON, prices=PRICES)
+        # Support variables
+        ts_env = NonStationaryEnvironment(curves=curves, horizon=TIME_HORIZON, prices=PRICES)
+        ts_learner = TSLearner(prices=PRICES)
 
-    regrets_swts_per_timestep = []
-    regrets_swucb_per_timestep = []
-    regrets_ts_per_timestep = []
+        swts_env = NonStationaryEnvironment(curves=curves, horizon=TIME_HORIZON, prices=PRICES)
+        swts_learner = SWTSLearner(prices=PRICES, horizon=TIME_HORIZON, const=60)
 
-    cumulative_regret_swts = cumulative_regret_swucb = cumulative_regret_ts = 0
+        swucb_env = NonStationaryEnvironment(curves=curves, horizon=TIME_HORIZON, prices=PRICES)
+        swucb_learner = SWUCBLearner(n_arms=N_ARMS, horizon=TIME_HORIZON, prices=PRICES, const=60)
 
-    # Pricing loop
-    for i in trange(TIME_HORIZON):
-        # Advance the propagation in the social network
-        seeds_vector = mc_sampler.simulate_episode(seeds, 1)
+        regrets_swts_per_timestep = []
+        regrets_swucb_per_timestep = []
+        regrets_ts_per_timestep = []
 
-        if seeds_vector.shape[0] == 1:  # The propagation has stopped, no need to continue the loop
-            break
+        cumulative_regret_swts = cumulative_regret_swucb = cumulative_regret_ts = 0
 
-        seeds = seeds_vector[1]
-        clicks = int(np.sum(seeds))
+        tot = 0
 
-        # Bandit pricing
+        # Pricing loop
+        for i in trange(TIME_HORIZON):
+            # Advance the propagation in the social network
+            seeds_vector = mc_sampler.simulate_episode(seeds, 1)
 
-        opt_reward = ts_env.opt_reward()
+            if seeds_vector.shape[0] == 1:  # The propagation has stopped, no need to continue the loop
+                break
 
-        for _ in range(clicks):
+            seeds = seeds_vector[1]
+            clicks = int(np.sum(seeds))
 
-            # Thompson Sampling
-            pulled_arm = ts_learner.pull_arm()
-            reward = ts_env.round(pulled_arm)
-            ts_learner.update(pulled_arm, reward)
+            # Bandit pricing
 
-            instantaneous_regret = ts_env.get_inst_regret(pulled_arm)
-            cumulative_regret_ts += instantaneous_regret
+            opt_reward = ts_env.opt_reward()
 
-            # Sliding Window Thompson Sampling
+            tot += clicks
 
-            pulled_arm = swts_learner.pull_arm()
-            reward = swts_env.round(pulled_arm)
-            swts_learner.update(pulled_arm, reward)
+            for _ in range(clicks):
 
-            instantaneous_regret = swts_env.get_inst_regret(pulled_arm)
-            cumulative_regret_swts += instantaneous_regret
+                # Thompson Sampling
+                pulled_arm = ts_learner.pull_arm()
+                reward = ts_env.round(pulled_arm)
+                ts_learner.update(pulled_arm, reward)
 
-            # Sliding Window UCB
+                instantaneous_regret = ts_env.get_inst_regret(pulled_arm)
+                cumulative_regret_ts += instantaneous_regret
 
-            pulled_arm = swucb_learner.pull_arm()
-            reward = swucb_env.round(pulled_arm)
-            swucb_learner.update(pulled_arm, reward)
+                # Sliding Window Thompson Sampling
 
-            instantaneous_regret = swucb_env.get_inst_regret(pulled_arm)
-            cumulative_regret_swucb += instantaneous_regret
+                pulled_arm = swts_learner.pull_arm()
+                reward = swts_env.round(pulled_arm)
+                swts_learner.update(pulled_arm, reward)
 
-        regrets_ts_per_timestep.append(cumulative_regret_ts)
-        regrets_swucb_per_timestep.append(cumulative_regret_swucb)
-        regrets_swts_per_timestep.append(cumulative_regret_swts)
+                instantaneous_regret = swts_env.get_inst_regret(pulled_arm)
+                cumulative_regret_swts += instantaneous_regret
 
-        # Increase timestep
-        swts_env.forward_time()
-        ts_env.forward_time()
-        swucb_env.forward_time()
+                # Sliding Window UCB
+
+                pulled_arm = swucb_learner.pull_arm()
+                reward = swucb_env.round(pulled_arm)
+                swucb_learner.update(pulled_arm, reward)
+
+                instantaneous_regret = swucb_env.get_inst_regret(pulled_arm)
+                cumulative_regret_swucb += instantaneous_regret
+
+            regrets_ts_per_timestep.append(cumulative_regret_ts)
+            regrets_swucb_per_timestep.append(cumulative_regret_swucb)
+            regrets_swts_per_timestep.append(cumulative_regret_swts)
+
+            # Increase timestep
+            swts_env.forward_time()
+            ts_env.forward_time()
+            swucb_env.forward_time()
+
+        print("Total pulls:", tot)
+
+    # TODO plot with seaborn
 
     # Plot the regret over time
     plt.figure(1)

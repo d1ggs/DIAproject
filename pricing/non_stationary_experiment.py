@@ -26,7 +26,7 @@ with open("products/products.json", 'r') as productfile:
         y = season["y_values"]
         curves.append(ProductConversionRate(p_id, s_id, N_ARMS, y))
 
-arms = [0, 1, 2, 3, 4,5,6,7,8,9]
+arms = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 swucb_regrets_per_experiment = []
 swts_regrets_per_experiment = []
@@ -34,19 +34,19 @@ ts_regrets_per_experiment = []
 
 window_size = 4 * int(np.sqrt(TIME_HORIZON))
 
-NonStationaryEnvironment(curves=curves, horizon=T, prices=PRICES).plot()
+NonStationaryEnvironment(curves=curves, horizon=TIME_HORIZON, prices=PRICES).plot()
 
 for e in trange(N_EXPERIMENTS):
 
     # Reset the environments
     ts_env = NonStationaryEnvironment(curves=curves, horizon=TIME_HORIZON, prices=PRICES)
-    ts_learner = TSLearner(n_arms=N_ARMS, prices=PRICES)
+    ts_learner = TSLearner(prices=PRICES)
 
     swts_env = NonStationaryEnvironment(curves=curves, horizon=TIME_HORIZON, prices=PRICES)
-    swts_learner = SWTSLearner(n_arms=N_ARMS, horizon=TIME_HORIZON, prices=PRICES)
+    swts_learner = SWTSLearner(prices=PRICES, horizon=TIME_HORIZON, const=10)
 
     swucb_env = NonStationaryEnvironment(curves=curves, horizon=TIME_HORIZON, prices=PRICES)
-    swucb_learner = SWUCBLearner(n_arms=N_ARMS, horizon=TIME_HORIZON, prices=PRICES)
+    swucb_learner = SWUCBLearner(n_arms=N_ARMS, horizon=TIME_HORIZON, prices=PRICES, const=10)
 
     regrets_swts_per_timestep = []
     regrets_swucb_per_timestep = []
@@ -59,7 +59,7 @@ for e in trange(N_EXPERIMENTS):
         clicks = np.random.normal(10, 0.1)
         # clicks = 10
 
-        for _ in range(clicks):
+        for _ in range(int(clicks)):
             # Thompson Sampling
             pulled_arm = ts_learner.pull_arm()
             reward = ts_env.round(pulled_arm)
@@ -99,9 +99,6 @@ for e in trange(N_EXPERIMENTS):
     swts_regrets_per_experiment.append(regrets_swts_per_timestep)
     ts_regrets_per_experiment.append(regrets_ts_per_timestep)
 
-
-
-
 # ts_instantaneous_regret = np.zeros(T)
 # swts_instantaneous_regret = np.zeros(T)
 # n_phases = len(p)
@@ -131,6 +128,6 @@ plt.ylabel("Regret")
 plt.xlabel("t")
 plt.plot(np.mean(ts_regrets_per_experiment, axis=0), 'r')
 plt.plot(np.mean(swts_regrets_per_experiment, axis=0), 'b')
-#plt.plot(np.mean(swucb_regrets_per_experiment, axis=0), 'g')
+plt.plot(np.mean(swucb_regrets_per_experiment, axis=0), 'g')
 plt.legend(["TS", "SW-TS", "SW-UCB"])
 plt.show()

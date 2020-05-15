@@ -24,9 +24,9 @@ TOTAL_BUDGET = 100
 
 social_names = ["facebook", "gplus", "twitter"]
 parameters = np.array(
-        [[0.1, 0.3, 0.2, 0.2, 0.2],
-         [0.4, 0.1, 0.2, 0.2, 0.1],
-         [0.5, 0.1, 0.1, 0.1, 0.2]])  # parameters for each social
+    [[0.1, 0.3, 0.2, 0.2, 0.2],
+     [0.4, 0.1, 0.2, 0.2, 0.1],
+     [0.5, 0.1, 0.1, 0.1, 0.2]])  # parameters for each social
 
 if __name__ == "__main__":
 
@@ -66,7 +66,6 @@ if __name__ == "__main__":
 
         print("Activated seeds:", np.sum(seeds))
 
-
         # Load product conversion rate curve information
         with open("pricing/products/products.json", 'r') as productfile:
             p_info = json.load(productfile)
@@ -83,7 +82,7 @@ if __name__ == "__main__":
         env = StationaryEnvironment(prices=PRICES, curve=curve)
 
         # ucb_learner = UCBLearner(N_ARMS, PRICES)
-        ts_learner = TSLearner(N_ARMS, PRICES)
+        ts_learner = TSLearner(PRICES)
 
         # cumulative_regret_ucb = 0
         cumulative_regret_ts = 0
@@ -95,7 +94,7 @@ if __name__ == "__main__":
             # Advance the propagation in the social network
             seeds_vector = mc_sampler.simulate_episode(seeds, 1)
 
-            if seeds_vector.shape[0] == 1: # The propagation has stopped, no need to continue the loop
+            if seeds_vector.shape[0] == 1:  # The propagation has stopped, no need to continue the loop
                 break
 
             seeds = seeds_vector[1]
@@ -123,7 +122,6 @@ if __name__ == "__main__":
 
             # regrets_ucb_per_timestep.append(cumulative_regret_ucb)
             regrets_ts_per_timestep.append(cumulative_regret_ts)
-
 
         # Plot the regret over time
         plt.figure()
