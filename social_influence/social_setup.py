@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import os
+import math
 
 from social_influence.const import ROOT_PROJECT_PATH, MATRIX_PATH
 MAX_NODES = 300
