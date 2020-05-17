@@ -5,7 +5,7 @@ from social_influence.mc_sampling import *
 
 
 class IMLinUCBEnviroment():
-    def __init__(self, prob_matrix,budget):
+    def __init__(self, prob_matrix, budget):
         self.prob_matrix = prob_matrix
         self.n_nodes = prob_matrix.shape[0]
         self.budget = budget
@@ -18,6 +18,7 @@ class IMLinUCBEnviroment():
         active_nodes = seeds
         newly_active_nodes = active_nodes
         all_activated_edges = np.zeros(probability_matrix.shape)
+        all_seen_edges = np.zeros(probability_matrix.shape)
 
         while (t < n_steps-1 and np.sum(newly_active_nodes) > 0):
             p = (probability_matrix.T * active_nodes).T
@@ -32,16 +33,19 @@ class IMLinUCBEnviroment():
 
             history = np.concatenate((history, [newly_active_nodes]), axis=0)
             t += 1
-        return history, all_activated_edges
+        for i in range(self.n_nodes):
+            if active_nodes[i] != 0:
+                all_seen_edges[i, :] = 1
+        return history, all_activated_edges, all_seen_edges
 
     def round(self, seed):
-        history, activated_edges = self.simulate_episode(seed, 3)
+        history, activated_edges, seen_edges = self.simulate_episode(seed, 2)
         n_activated_nodes = np.sum(history)
         #non voglio che in uno stesso round nodo venga attivato più volte
         activated_edges[activated_edges > 0] = 1
-        return n_activated_nodes, activated_edges
+        return n_activated_nodes, activated_edges, seen_edges
 
     def opt(self):
         greedy_learner = GreedyLearner(self.prob_matrix, self.n_nodes)
-        _ , best_reward = greedy_learner.fit(self.budget, 3, 3)
+        best_seed , best_reward = greedy_learner.fit(self.budget, 1000, 2)
         return best_reward
