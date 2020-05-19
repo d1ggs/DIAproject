@@ -5,10 +5,17 @@ from social_influence.mc_sampling import *
 
 
 class IMLinUCBEnviroment():
-    def __init__(self, prob_matrix,budget):
+    def __init__(self, prob_matrix,budget,n_steps):
+        """
+
+        :param prob_matrix:
+        :param budget:
+        :param n_steps: numero di step che deve fare simulazione montecarlo in metodo opt
+        """
         self.prob_matrix = prob_matrix
         self.n_nodes = prob_matrix.shape[0]
         self.budget = budget
+        self.n_steps = n_steps
 
     def simulate_episode(self, seeds, n_steps):
         """
@@ -64,5 +71,5 @@ class IMLinUCBEnviroment():
         :return: il seed ottimo
         """
         greedy_learner = GreedyLearner(self.prob_matrix, self.n_nodes)
-        _ , best_reward = greedy_learner.fit(self.budget, 3, 3)
+        _ , best_reward = greedy_learner.fit(self.budget, 1000, self.n_steps)
         return best_reward

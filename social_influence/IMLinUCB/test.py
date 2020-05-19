@@ -4,6 +4,7 @@ from social_influence.IMLinUCB.create_dataset import *
 import matplotlib.pyplot as plt
 
 budget = 2
+n_steps = 2
 n_nodes = 20
 n_features = 5
 T = 50
@@ -31,6 +32,5 @@ plt.figure()
 plt.xlabel("Time")
 plt.ylabel("Regret")
 plt.plot(np.cumsum(np.mean(optimal_reward - reward_per_experiment, axis=0)), 'g')
-plt.legend(["TS", "Greedy"])
 plt.show()
 
