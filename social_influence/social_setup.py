@@ -20,11 +20,8 @@ class SocialNetwork:
         self.feature_max = feature_max
         self.max_nodes = max_nodes
 
-        assert(self.parameters.shape == self.features[0].shape)
-
-        # Use math.isclose because np.sum may don't return exactly 1
-        assert (math.isclose(np.sum(self.parameters), 1.0, rel_tol=1e-5))
-
+        assert (self.parameters.shape == self.features[0].shape)
+        assert (np.sum(self.parameters) == 1)
         self.matrix = self.probability_matrix()
 
     def compute_activation_prob(self, features):
@@ -34,17 +31,21 @@ class SocialNetwork:
 
     def probability_matrix(self):
         max_node = self.social_edges.max()
+        if self.max_nodes > 0:
+            max_node = self.max_nodes
+            print("Reducing dataset matrix to {} x {} nodes".format(self.max_nodes, self.max_nodes))
+
         matrix = np.zeros((max_node + 1, max_node + 1))
 
         for i in range(self.social_edges.shape[0]):
             node_a = self.social_edges[i][0]
             node_b = self.social_edges[i][1]
-            features = self.features[i]
-            matrix[node_a, node_b] = self.compute_activation_prob(features)
 
-        if self.max_nodes > 0:
-            print("Reducing dataset matrix to {} x {} nodes".format(self.max_nodes, self.max_nodes))
-            matrix = matrix[:self.max_nodes, :self.max_nodes]
+            # Write the activation probability only if the nodes are in range
+            if node_a < max_node and node_b < max_node:
+                features = self.features[i]
+                matrix[node_a, node_b] = self.compute_activation_prob(features)
+
         ##np.save(os.path.join(ROOT_PROJECT_PATH, MATRIX_PATH),matrix)
         return matrix
 
