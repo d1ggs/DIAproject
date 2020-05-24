@@ -19,7 +19,7 @@ gr_rewards_per_experiment = []
 
 for e in trange(n_experiments):
     env = StationaryEnvironment(n_arms=n_arms, probabilities=p)
-    ts_learner = TSLearner(n_arms=n_arms)
+    ts_learner = TSLearner()
     gr_learner = GreedyLearner(n_arms=n_arms)
 
     ts_rewards = []

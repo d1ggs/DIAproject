@@ -3,14 +3,14 @@ import numpy as np
 
 
 class TSLearner(Learner):
-    def __init__(self, n_arms: int, prices: list):
-        assert n_arms == len(prices), "Number of prices different from the number of arms"
-        super().__init__(n_arms)
+    def __init__(self, prices: list):
+        self.n_arms = len(prices)
+        super().__init__(len(prices))
 
         # self.prices = np.random.randint(0, 100, self.n_arms)
         # print(self.prices)
         self.prices = prices
-        self.beta_parameters = np.ones((n_arms, 2))
+        self.beta_parameters = np.ones((self.n_arms, 2))
 
     def pull_arm(self):
         samples = np.random.beta(self.beta_parameters[:, 0], self.beta_parameters[:, 1])
