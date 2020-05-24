@@ -33,9 +33,9 @@ PARAMETERS = np.array(
      [0.5, 0.1, 0.1, 0.1, 0.2]])  # parameters for each social
 
 
-def run_experiment(original_seeds, n_arms, prices, horizon, conversion_curve):
+def run_experiment(initial_seeds, n_arms, prices, horizon, conversion_curve, sampler):
     # Restore the seeds
-    seeds = np.copy(original_seeds)
+    seeds = np.copy(initial_seeds)
     # Reset the environments
     env = StationaryEnvironment(prices=prices, curve=conversion_curve)
     ucb_learner = UCBLearner(n_arms, prices)
@@ -46,7 +46,7 @@ def run_experiment(original_seeds, n_arms, prices, horizon, conversion_curve):
     tot = 0
     for i in range(horizon):
         # Advance the propagation in the social network
-        seeds_vector = mc_sampler.simulate_episode(seeds, 1)
+        seeds_vector = sampler.simulate_episode(seeds, 1)
 
         if seeds_vector.shape[0] == 1:  # The propagation has stopped, no need to continue the loop
             break
@@ -144,7 +144,7 @@ if __name__ == "__main__":
         with Pool() as pool:
             for _ in range(N_EXPERIMENTS):
                 r_async = pool.apply_async(run_experiment,
-                                           args=(original_seeds, N_ARMS, PRICES, TIME_HORIZON, curve))
+                                           args=(original_seeds, N_ARMS, PRICES, TIME_HORIZON, curve, copy.deepcopy(mc_sampler)))
                 results_async.append(r_async)
 
             for r in tqdm(results_async):
