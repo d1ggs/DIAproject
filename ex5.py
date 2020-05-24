@@ -1,11 +1,15 @@
 import json
+from multiprocessing import pool, Pool
 
 import numpy as np
+import pandas as pd
+import seaborn as sns
 import os
 import time
 import matplotlib.pyplot as plt
 
-from tqdm import trange
+from tqdm import trange, tqdm
+import copy
 
 from pricing.conversion_rate import ProductConversionRate
 from pricing.environments import StationaryEnvironment
@@ -22,11 +26,60 @@ from social_influence.influence_maximisation import GreedyLearner
 MAX_NODES = 300
 TOTAL_BUDGET = 100
 
-social_names = ["gplus", "facebook", "twitter"]
-parameters = np.array(
+SOCIAL_NAMES = ["gplus", "facebook", "twitter"]
+PARAMETERS = np.array(
     [[0.1, 0.3, 0.2, 0.2, 0.2],
      [0.4, 0.1, 0.2, 0.2, 0.1],
      [0.5, 0.1, 0.1, 0.1, 0.2]])  # parameters for each social
+
+
+def run_experiment(original_seeds, n_arms, prices, horizon, conversion_curve):
+    # Restore the seeds
+    seeds = np.copy(original_seeds)
+    # Reset the environments
+    env = StationaryEnvironment(prices=prices, curve=conversion_curve)
+    ucb_learner = UCBLearner(n_arms, prices)
+    ts_learner = TSLearner(prices)
+    regrets_ucb_per_timestep = []
+    regrets_ts_per_timestep = []
+    cumulative_regret_ts = cumulative_regret_ucb = 0
+    tot = 0
+    for i in range(horizon):
+        # Advance the propagation in the social network
+        seeds_vector = mc_sampler.simulate_episode(seeds, 1)
+
+        if seeds_vector.shape[0] == 1:  # The propagation has stopped, no need to continue the loop
+            break
+
+        seeds = seeds_vector[1]
+        clicks = int(np.sum(seeds))
+
+        # Bandit pricing
+
+        # Choose a price for each user and compute reward
+        for _ in range(clicks):
+            # UCB learner
+            pulled_arm = ucb_learner.pull_arm()
+            reward = env.round(pulled_arm)
+            ucb_learner.update(pulled_arm, reward)
+
+            instantaneous_regret = env.get_inst_regret(pulled_arm)
+            cumulative_regret_ucb += instantaneous_regret
+
+            # TS learner
+            pulled_arm = ts_learner.pull_arm()
+            reward = env.round(pulled_arm)
+            ts_learner.update(pulled_arm, reward)
+
+            instantaneous_regret = env.get_inst_regret(pulled_arm)
+            cumulative_regret_ts += instantaneous_regret
+
+        regrets_ucb_per_timestep.append(cumulative_regret_ucb)
+        regrets_ts_per_timestep.append(cumulative_regret_ts)
+
+    return regrets_ucb_per_timestep, regrets_ts_per_timestep
+
+
 
 if __name__ == "__main__":
 
@@ -36,12 +89,12 @@ if __name__ == "__main__":
 
     # Simulate Social Network
 
-    for social_network, index in zip(social_names, range(len(social_names))):
+    for social_network, product_index in zip(SOCIAL_NAMES, range(len(SOCIAL_NAMES))):
 
         helper = Helper(social_network + "_combined")
         dataset = helper.read_dataset(social_network + "_fixed")
 
-        social = SocialNetwork(dataset, parameters[index], FEATURE_MAX, max_nodes=MAX_NODES)
+        social = SocialNetwork(dataset, PARAMETERS[product_index], FEATURE_MAX, max_nodes=MAX_NODES)
         prob_matrix = social.get_matrix().copy()
         n_nodes = prob_matrix.shape[0]
 
@@ -71,67 +124,56 @@ if __name__ == "__main__":
             p_info = json.load(productfile)
             productfile.close()
 
-            product = p_info["products"][index]
+            product = p_info["products"][product_index]
             product_id = product["product_id"]
             seasons = product["seasons"]
             season_id = seasons[0]["season_id"]
             y = seasons[0]["y_values"]
             curve = ProductConversionRate(product_id, season_id, N_ARMS, y)
 
-        # Support variables
-        env = StationaryEnvironment(prices=PRICES, curve=curve)
+        original_seeds = np.copy(seeds)
 
-        # ucb_learner = UCBLearner(N_ARMS, PRICES)
-        ts_learner = TSLearner(PRICES)
+        ts_regrets_per_experiment = []
+        ucb_regrets_per_experiment = []
 
-        # cumulative_regret_ucb = 0
-        cumulative_regret_ts = 0
-        # regrets_ucb_per_timestep = []
-        regrets_ts_per_timestep = []
+        # Run multiple pricing experiments in parallel
 
-        # Pricing loop
-        for i in trange(TIME_HORIZON):
-            # Advance the propagation in the social network
-            seeds_vector = mc_sampler.simulate_episode(seeds, 1)
+        results_async = []
+        results = []
 
-            if seeds_vector.shape[0] == 1:  # The propagation has stopped, no need to continue the loop
-                break
+        with Pool() as pool:
+            for _ in range(N_EXPERIMENTS):
+                r_async = pool.apply_async(run_experiment,
+                                           args=(original_seeds, N_ARMS, PRICES, TIME_HORIZON, curve))
+                results_async.append(r_async)
 
-            seeds = seeds_vector[1]
-            clicks = int(np.sum(seeds))
+            for r in tqdm(results_async):
+                results.append(r.get())
 
-            # Bandit pricing
+        for regrets_ucb_per_timestep, regrets_ts_per_timestep in results:
+            ts_regrets_per_experiment.append(regrets_ts_per_timestep)
+            ucb_regrets_per_experiment.append(regrets_ucb_per_timestep)
 
-            # Choose a price for each user and compute reward
-            for _ in range(clicks):
-                # UCB learner
-                # pulled_arm = ucb_learner.pull_arm()
-                # reward = env.round(pulled_arm)
-                # ucb_learner.update(pulled_arm, reward)
-                #
-                # instantaneous_regret = env.get_inst_regret(pulled_arm)
-                # cumulative_regret_ucb += instantaneous_regret
+        # Plot results
 
-                # TS learner
-                pulled_arm = ts_learner.pull_arm()
-                reward = env.round(pulled_arm)
-                ts_learner.update(pulled_arm, reward)
+        agents = ["UCB", "TS"]
+        regrets = [ucb_regrets_per_experiment, ts_regrets_per_experiment]
 
-                instantaneous_regret = env.get_inst_regret(pulled_arm)
-                cumulative_regret_ts += instantaneous_regret
+        labels = []
+        results = []
+        timesteps = []
+        indexes = []
 
-            # regrets_ucb_per_timestep.append(cumulative_regret_ucb)
-            regrets_ts_per_timestep.append(cumulative_regret_ts)
+        # Prepare the data structures for the dataframe
+        for agent, data in zip(agents, regrets):
+            for experiment, index in zip(data, range(len(data))):
+                labels.extend([agent] * len(experiment))
+                timesteps.extend(np.arange(len(experiment)))
+                results.extend(experiment)
+                indexes.extend([index] * len(experiment))
 
-        # Plot the regret over time
         plt.figure()
-        plt.xlabel("Time")
-        plt.ylabel("Regret")
-        plt.title(social_network + " - product " + str(index + 1))
-        # plt.plot(regrets_ucb_per_timestep, 'r')
-        plt.plot(regrets_ts_per_timestep, 'b')
-        # plt.legend(['UCB1', "TS"])
+        df = pd.DataFrame({"agent": labels, "regret": results, "timestep": timesteps, "experiment_id": indexes})
+        sns.lineplot(x="timestep", y="regret", data=df, hue="agent")
+        plt.title(social_network + " - product " + str(product_index + 1) + " : mean regret over time")
         plt.show()
-
-        # plot_name = 'appr_error_n%d_s%d_b%d' % (n_nodes, monte_carlo_simulations, budget)
-        # plot_approx_error_point2(sum_simulations, plot_name)
