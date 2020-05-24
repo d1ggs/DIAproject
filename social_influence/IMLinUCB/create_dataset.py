@@ -24,7 +24,16 @@ def create_dataset(n_nodes, n_features):
 
 
 def create_dataset2(n_nodes, n_features, parameter_vector):
-    mask_edges = np.random.binomial(1, 0.05, size=(n_nodes, n_nodes))
+    """
+
+    @param n_nodes: numero nodi
+    @param n_features: numero features
+    @param parameter_vector: theta
+    @return probability_matrix
+    @return features_matrix: (n_nodes*n_nodes*n_features) matrix of features, each edge is associated with index (i,j),parameter vector for edge (i,j) is features_marix[i,j,:]
+    """
+    mask_edges = np.random.binomial(1, 0.2, size=(n_nodes, n_nodes))
+    # le probabilità della diagonale devono essere zero.
     for i in range(n_nodes):
         for j in range(n_nodes):
             if i == j:
@@ -34,7 +43,8 @@ def create_dataset2(n_nodes, n_features, parameter_vector):
     for i in range(0, n_nodes):
         for j in range(0, n_nodes):
             if mask_edges[i, j] != 0:
-                features_vector = normalize(np.atleast_2d(np.random.rand(n_features)))
+                # forse è meglio normalizzare features_vector?
+                features_vector = np.atleast_2d(np.random.rand(n_features))
                 features_matrix[i, j, :] = features_vector
     probability_matrix = np.zeros((n_nodes, n_nodes))
     for i in range(0, n_nodes):

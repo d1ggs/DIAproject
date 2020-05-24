@@ -5,12 +5,25 @@ from social_influence.mc_sampling import *
 
 
 class IMLinUCBEnviroment():
-    def __init__(self, prob_matrix, budget):
+    def __init__(self, prob_matrix,budget,n_steps):
+        """
+
+        :param prob_matrix:
+        :param budget:
+        :param n_steps: numero di step che deve fare simulazione montecarlo in metodo opt
+        """
         self.prob_matrix = prob_matrix
         self.n_nodes = prob_matrix.shape[0]
         self.budget = budget
+        self.n_steps = n_steps
 
     def simulate_episode(self, seeds, n_steps):
+        """
+        Identico a simulate episode della lezione però memorizzo sia gli edge attivati, sia quelli visti
+        :param seeds:
+        :param n_steps:
+        :return:
+        """
         t = 0
         probability_matrix = self.prob_matrix.copy()
         assert (seeds.shape[0] == self.prob_matrix.shape[0])
@@ -39,13 +52,24 @@ class IMLinUCBEnviroment():
         return history, all_activated_edges, all_seen_edges
 
     def round(self, seed):
-        history, activated_edges, seen_edges = self.simulate_episode(seed, 2)
+        """
+        @param seed: seed dato dal learner
+        @return n_activated_nodes: reward
+        @return activated_edges: matrice binaria con (i,j)=1 se l'edge corrispondente è stato attivato
+        @return seen_edges: matrice binaria con (i,j)=1 se l'edge corrispondente è stato visto
+
+        """
+        history, activated_edges, seen_edges = self.simulate_episode(seed, 3)
         n_activated_nodes = np.sum(history)
         #non voglio che in uno stesso round nodo venga attivato più volte
         activated_edges[activated_edges > 0] = 1
         return n_activated_nodes, activated_edges, seen_edges
 
     def opt(self):
+        """
+
+        :return: il seed ottimo
+        """
         greedy_learner = GreedyLearner(self.prob_matrix, self.n_nodes)
-        best_seed , best_reward = greedy_learner.fit(self.budget, 1000, 2)
+        _ , best_reward = greedy_learner.fit(self.budget, 1000, self.n_steps)
         return best_reward
