@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import pandas as pd
 import os
@@ -19,8 +21,11 @@ class SocialNetwork:
         self.feature_max = feature_max
         self.max_nodes = max_nodes
 
-        assert (self.parameters.shape == self.features[0].shape)
-        assert (np.sum(self.parameters) == 1)
+        assert(self.parameters.shape == self.features[0].shape)
+
+        # Use math.isclose because np.sum may don't return exactly 1
+        assert (math.isclose(np.sum(self.parameters), 1.0, rel_tol=1e-5))
+
         self.matrix = self.probability_matrix()
 
     def compute_activation_prob(self, features):
