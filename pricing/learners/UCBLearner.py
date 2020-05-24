@@ -25,7 +25,7 @@ class UCBLearner(Learner):
 
 class SWUCBLearner(UCBLearner):
     """Class implementing SW-UCB# state-of-the-art bandit for non-stationary contexts"""
-    def __init__(self, n_arms: int, horizon: int, prices: list, const: int, alpha=2):
+    def __init__(self, n_arms: int, horizon: int, prices: list, const: int, alpha=2, verbose = False):
         """
         :param n_arms: number of conversion rates to be learned
         :param horizon: the number of samples that are to be considered when updating distributions
@@ -38,7 +38,8 @@ class SWUCBLearner(UCBLearner):
         self.alpha = alpha
         self.pulls = []
         self.tau = int(4 * np.sqrt(self.horizon * np.log(self.horizon)))
-        print("SW-UCB using window size:", self.tau)
+        if verbose:
+            print("SW-UCB using window size:", self.tau)
 
     def get_times_pulled(self, arm):
         """Compute how many times an arm has been pulled inside the sliding window"""

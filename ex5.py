@@ -22,7 +22,7 @@ from social_influence.influence_maximisation import GreedyLearner
 MAX_NODES = 300
 TOTAL_BUDGET = 100
 
-social_names = ["facebook", "gplus", "twitter"]
+social_names = ["gplus", "facebook", "twitter"]
 parameters = np.array(
     [[0.1, 0.3, 0.2, 0.2, 0.2],
      [0.4, 0.1, 0.2, 0.2, 0.1],
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     for social_network, index in zip(social_names, range(len(social_names))):
 
         helper = Helper(social_network + "_combined")
-        dataset = helper.read_dataset(social_network)
+        dataset = helper.read_dataset(social_network + "_fixed")
 
         social = SocialNetwork(dataset, parameters[index], FEATURE_MAX, max_nodes=MAX_NODES)
         prob_matrix = social.get_matrix().copy()

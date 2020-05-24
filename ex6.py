@@ -4,12 +4,14 @@ import numpy as np
 import os
 import time
 import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
 
 from tqdm import trange
 
 from pricing.conversion_rate import ProductConversionRate
 from pricing.environments import NonStationaryEnvironment
-from pricing.learners.UCBLearner import UCBLearner, SWUCBLearner
+from pricing.learners.UCBLearner import  SWUCBLearner
 from pricing.learners.swts_learner import SWTSLearner
 from pricing.const import *
 from pricing.learners.ts_learner import TSLearner
@@ -78,11 +80,20 @@ if __name__ == "__main__":
         y = season["y_values"]
         curves.append(ProductConversionRate(product_id, season_id, N_ARMS, y))
 
+    # Support variables to store results for each experiment
+    swucb_regrets_per_experiment = []
+    swts_regrets_per_experiment = []
+    ts_regrets_per_experiment = []
+
+    # Store the original seeds to repeat experiments
+    original_seeds = np.copy(seeds)
+
     for _ in trange(N_EXPERIMENTS):
 
-        # TODO save data for each experiment
+        # Restore the seeds
+        seeds = np.copy(original_seeds)
 
-        # Support variables
+        # Reset the environments
         ts_env = NonStationaryEnvironment(curves=curves, horizon=TIME_HORIZON, prices=PRICES)
         ts_learner = TSLearner(prices=PRICES)
 
@@ -101,7 +112,7 @@ if __name__ == "__main__":
         tot = 0
 
         # Pricing loop
-        for i in trange(TIME_HORIZON):
+        for i in range(TIME_HORIZON):
             # Advance the propagation in the social network
             seeds_vector = mc_sampler.simulate_episode(seeds, 1)
 
@@ -154,16 +165,33 @@ if __name__ == "__main__":
             ts_env.forward_time()
             swucb_env.forward_time()
 
-        print("Total pulls:", tot)
+        swucb_regrets_per_experiment.append(regrets_swucb_per_timestep)
+        swts_regrets_per_experiment.append(regrets_swts_per_timestep)
+        ts_regrets_per_experiment.append(regrets_ts_per_timestep)
 
-    # TODO plot with seaborn
+        # print("Total pulls:", tot)
 
-    # Plot the regret over time
-    plt.figure(1)
-    plt.ylabel("Regret")
-    plt.xlabel("t")
-    plt.plot(regrets_ts_per_timestep, 'r')
-    plt.plot(regrets_swts_per_timestep, 'b')
-    plt.plot(regrets_swucb_per_timestep, 'g')
-    plt.legend(["TS", "SW-TS", "SW-UCB"])
+    # Plot results
+
+    agents = ["SW-UCB", "SW-TS", "TS"]
+    regrets = [swucb_regrets_per_experiment, swts_regrets_per_experiment, ts_regrets_per_experiment]
+
+    labels = []
+    results = []
+    timesteps = []
+    indexes = []
+
+    # Prepare the data structures for the dataframe
+    for agent, data in zip(agents, regrets):
+        for experiment, index in zip(data, range(len(data))):
+            labels.extend([agent] * len(experiment))
+            timesteps.extend(np.arange(len(experiment)))
+            results.extend(experiment)
+            indexes.extend([index] * len(experiment))
+
+    plt.figure()
+    df = pd.DataFrame({"agent": labels, "regret": results, "timestep": timesteps, "experiment_id": indexes})
+    print(df)
+    sns.lineplot(x="timestep", y="regret", data=df, hue="agent")
+    plt.title("Mean regret over time")
     plt.show()

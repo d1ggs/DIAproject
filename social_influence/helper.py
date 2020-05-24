@@ -68,7 +68,7 @@ class Helper:
 if __name__ == "__main__":
     helper = Helper()
     # helper.read_dataset("gplus")
-    # helper.convert_dataset("gplus")
+    helper.convert_dataset("gplus")
     helper.convert_dataset("facebook")
     helper.convert_dataset("twitter")
 
