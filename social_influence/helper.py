@@ -28,9 +28,9 @@ class Helper:
     def read_dataset(self, dataset: str):
         dataset = pd.read_csv(os.path.join(ROOT_PROJECT_PATH, "data/" + dataset + ".csv"))
         dataset = dataset.to_numpy()
-        social_nodes = dataset[:, :2]
+        social_nodes = dataset[:, :2].astype(int)
         features = dataset[:, 2:]
-        return social_nodes,  features
+        return social_nodes, features
 
     @staticmethod
     def convert_dataset(dataset_name: str):
