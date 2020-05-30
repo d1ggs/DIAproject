@@ -8,7 +8,7 @@ class Learner(object):
 
         self.n_arms = n_arms
         self.t = 0  # Represents the current round
-        self.rewards_per_arm = x = [[] for i in range(n_arms)]  # Stores the collected rewards at each round for each arm
+        self.rewards_per_arm = [[] for i in range(n_arms)]  # Stores the collected rewards at each round for each arm
         self.collected_rewards = np.array([])
 
     def update_observations(self, pulled_arm: int, reward: float):

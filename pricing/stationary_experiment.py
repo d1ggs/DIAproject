@@ -38,7 +38,7 @@ regret_per_experiment_ts = []
 for _ in trange(N_EXPERIMENTS):
     # Instantiate the learners
     ucb_learner = UCBLearner(N_ARMS, PRICES)
-    ts_learner = TSLearner(N_ARMS, PRICES)
+    ts_learner = TSLearner(PRICES)
 
     # Reset support variables
     cumulative_regret_ucb = 0
