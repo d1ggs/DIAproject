@@ -57,4 +57,4 @@ class SocialNetwork:
         return self.matrix
 
     def get_n_nodes(self):
-        return self.social_edges.shape[0]
+        return self.matrix.shape[0]
