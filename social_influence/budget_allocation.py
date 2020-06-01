@@ -24,7 +24,6 @@ class GreedyBudgetAllocation:
         self.n_steps_montecarlo = n_steps_montecarlo
 
     def joint_influence_calculation(self, budget: list):
-        print("CALLLLLL")
         seeds1, influence1 = self.social1_learner.fit(budget[0], self.mc_simulations, self.n_steps_montecarlo)
         seeds2, influence2 = self.social2_learner.fit(budget[1],self.mc_simulations, self.n_steps_montecarlo)
         seeds3, influence3 = self.social3_learner.fit( budget[2], self.mc_simulations, self.n_steps_montecarlo)  
@@ -64,7 +63,6 @@ class GreedyBudgetAllocation:
         for v in prob.variables():
             if v.varValue > 0:
                 print(v.name, "=", v.varValue)
-        # TODO dio se non me la mandi buona ritorno credente e sono cazzi tuoi poi perche' mi becchi in paradiso
 
 
 
