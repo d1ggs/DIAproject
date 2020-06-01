@@ -32,6 +32,19 @@ class SingleInfluenceLearner(ABC):
 class GreedyLearner(SingleInfluenceLearner):
 
     def pool_worker(self, node: int, best_seeds: np.ndarray, mc_sim: int, n_steps: int):
+        """
+        Function that runs in a single thread. Used only for parallel_fit
+
+        Parameters
+        -----------
+        node : node added to the seeds at this step to compute influence
+
+        best_seeds : array of seeds computed at previous steps of the Greedy Algorithm
+
+        mc_sim : montecarlo_simulation : number of MonteCarlo Simulations
+
+        n_steps_max : max number of steps in a simulation
+        """
         sampler = MonteCarloSampling(self.prob_matrix)
         seeds = np.copy(best_seeds)
         seeds[node] = 1  # add current node to seeds
@@ -42,6 +55,21 @@ class GreedyLearner(SingleInfluenceLearner):
         return node, influence
 
     def parallel_fit(self, budget: int, montecarlo_simulations: int, n_steps_max: int):
+        """
+        Greedy influence maximization algorithm. Execution in parallel
+        
+        At each step, a pool of workers computes the influence of the best seeds of the previous step plus a new node.
+        The node with the best marginal increase is added to the best seeds.
+        The number of iterations is given by the budget
+
+        Parameters
+        ---------
+        budget : budget for this social network
+
+        montecarlo_simulation : number of MonteCarlo Simulations
+
+        n_steps_max : max number of steps in a simulation
+        """
 
         max_influence = 0
         best_seeds = np.zeros(self.n_nodes)
@@ -84,7 +112,7 @@ class GreedyLearner(SingleInfluenceLearner):
 
     def fit(self, budget: int, montecarlo_simulations: int, n_steps_max: int):
         """
-        Greedy influence maximization algorithm
+        Greedy influence maximization algorithm. Serial execution
         
         Parameters
         ---------
