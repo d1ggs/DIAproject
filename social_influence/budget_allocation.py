@@ -65,6 +65,20 @@ class GreedyBudgetAllocation:
                 print(v.name, "=", v.varValue)
 
 
+    #pre-computes social influence at each step for each social
+    def test_joint_influence(self):
+
+            #results is an array composed by tuple where each tuple is (node_step_i , influence_step_i)
+            results1 = self.social1_learner.cumulative_fit(self.budget_total, self.mc_simulations, self.n_steps_montecarlo)
+            results2 = self.social2_learner.cumulative_fit(self.budget_total, self.mc_simulations, self.n_steps_montecarlo)
+            results3 = self.social3_learner.cumulative_fit(self.budget_total,self.mc_simulations, self.n_steps_montecarlo)
+            print(results1)
+
+            #TODO use pulp to find the best budget allocation
+
+
+
+
 
 
 
