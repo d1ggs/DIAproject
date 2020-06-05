@@ -14,32 +14,42 @@ class GreedyBudgetAllocation:
         social2
         social3
         """
+        print(social1.get_matrix().shape, social1.get_n_nodes())
         self.social1_learner = GreedyLearner(social1.get_matrix(), social1.get_n_nodes())
         self.social2_learner = GreedyLearner(social2.get_matrix(), social2.get_n_nodes())
         self.social3_learner = GreedyLearner(social3.get_matrix(), social3.get_n_nodes())
         assert(budget_total >= 3)
         self.budget_total = budget_total
-        self.max_budget = np.sum(self.budget)
         self.mc_simulations = mc_simulations
         self.n_steps_montecarlo = n_steps_montecarlo
 
     def joint_influence_calculation(self, budget: list):
-        seeds1, influence1 = self.social1_learner.fit(self.mc_simulations, self.n_steps_montecarlo, budget[0])
-        seeds2, influence2 = self.social1_learner.fit(self.mc_simulations, self.n_steps_montecarlo, budget[1])
-        seeds3, influence3 = self.social1_learner.fit(self.mc_simulations, self.n_steps_montecarlo, budget[2])
+        seeds1, influence1 = self.social1_learner.fit(budget[0], self.mc_simulations, self.n_steps_montecarlo)
+        seeds2, influence2 = self.social2_learner.fit(budget[1],self.mc_simulations, self.n_steps_montecarlo)
+        seeds3, influence3 = self.social3_learner.fit( budget[2], self.mc_simulations, self.n_steps_montecarlo)  
         return influence1 + influence2 + influence3
+
+    def demo(self, budget: list):
+        sum = 0.1 * budget[0] + 0.1 * budget[1] + 10 * budget[2]
+        return sum
+
 
 
     def joint_influence_maximization(self):
 
         prob = LpProblem("Budget allocation through social media", LpMaximize)
-        # Initial budget distribution, given that budget is greater than 2 we could have this distribution (we could randomize it)
-        budget = list([self.budget_total-2, 1, 1])
+
         budget_0 = LpVariable("Budget_0", lowBound=1, upBound=self.budget_total-2, cat="Integer")
         budget_1 = LpVariable("Budget_1", lowBound=1, upBound=self.budget_total-2, cat="Integer")
         budget_2 = LpVariable("Budget_2", lowBound=1, upBound=self.budget_total-2, cat="Integer")
+        
+        budget_0.setInitialValue(self.budget_total-2)
+        budget_1.setInitialValue(1)
+        budget_2.setInitialValue(1)
+        #print(budget_0, int(budget_0))
 
-        prob += self.joint_influence_calculation([value(budget_0), value(budget_1), value(budget_2)])
+        #prob += self.joint_influence_calculation([budget_0.value(), budget_1.value(), budget_2.value()]))
+        prob += self.demo([budget_0.value(), budget_1.value(), budget_2.value()])
 
 
 
@@ -48,12 +58,25 @@ class GreedyBudgetAllocation:
         # We utilize cvxpy to do integer programming, with
 
         status = prob.solve()
-        print("Status: ", LpStatus(status))
+       # print("Status: ", LpStatus(status))
 
         for v in prob.variables():
             if v.varValue > 0:
                 print(v.name, "=", v.varValue)
-        # TODO dio se non me la mandi buona ritorno credente e sono cazzi tuoi poi perche' mi becchi in paradiso
+
+
+    #pre-computes social influence at each step for each social
+    def test_joint_influence(self):
+
+            #results is an array composed by tuple where each tuple is (node_step_i , influence_step_i)
+            results1 = self.social1_learner.cumulative_fit(self.budget_total, self.mc_simulations, self.n_steps_montecarlo)
+            results2 = self.social2_learner.cumulative_fit(self.budget_total, self.mc_simulations, self.n_steps_montecarlo)
+            results3 = self.social3_learner.cumulative_fit(self.budget_total,self.mc_simulations, self.n_steps_montecarlo)
+            print(results1)
+
+            #TODO use pulp to find the best budget allocation
+
+
 
 
 

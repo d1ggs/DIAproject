@@ -1,9 +1,9 @@
 import numpy as np
-import sklearn.preprocessing
+from sklearn.preprocessing import normalize
 
 
 def create_dataset(n_nodes, n_features):
-    mask_edges = np.random.binomial(1, 0.2, size=(n_nodes, n_nodes))
+    mask_edges = np.random.binomial(1, 0.05, size=(n_nodes, n_nodes))
     for i in range(n_nodes):
         for j in range(n_nodes):
             if i == j:
@@ -17,7 +17,7 @@ def create_dataset(n_nodes, n_features):
     for i in range(0, n_nodes):
         for j in range(0, n_nodes):
             if prob_matrix[i, j] != 0:
-                features_vector = np.atleast_2d(np.random.rand(n_features))
+                features_vector = normalize(np.atleast_2d(np.random.rand(n_features)))
                 feature_matrix_edges[i, j, :] = features_vector
 
     return prob_matrix, feature_matrix_edges, n_edges

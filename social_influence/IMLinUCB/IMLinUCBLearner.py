@@ -2,6 +2,7 @@ from social_influence.influence_maximisation import *
 from social_influence.mc_sampling import *
 
 
+
 class IMLinUCBLearner():
     def __init__(self, n_features, feature_matrix_edges, budget, n_steps):
         """
@@ -15,8 +16,8 @@ class IMLinUCBLearner():
         self.B = np.atleast_2d(np.zeros(n_features)).T
         self.collected_rewards = []
         self.feature_matrix_edges = feature_matrix_edges
-        self.sigma = 1
-        self.c = 2
+        self.sigma = 10
+        self.c = 1
         self.budget = budget
         self.n_steps = n_steps
         self.n_nodes = feature_matrix_edges.shape[0]
@@ -73,3 +74,5 @@ class IMLinUCBLearner():
                     self.M = self.M + self.sigma ** (-2) * np.dot(arm.T, arm)
                     if activated_edges[i, j] > 0:
                         self.B = self.B + arm.T
+
+

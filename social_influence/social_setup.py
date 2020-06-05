@@ -3,6 +3,7 @@ import math
 import numpy as np
 import pandas as pd
 import os
+import math
 
 from social_influence.const import ROOT_PROJECT_PATH, MATRIX_PATH
 
@@ -57,4 +58,4 @@ class SocialNetwork:
         return self.matrix
 
     def get_n_nodes(self):
-        return self.social_edges.shape[0]
+        return self.matrix.shape[0]

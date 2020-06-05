@@ -3,6 +3,7 @@ from itertools import combinations
 import multiprocessing
 from multiprocessing import Process, Queue, Pool
 from abc import ABC, abstractmethod
+from tqdm import tqdm
 
 from social_influence.mc_sampling import MonteCarloSampling
 
@@ -31,6 +32,19 @@ class SingleInfluenceLearner(ABC):
 class GreedyLearner(SingleInfluenceLearner):
 
     def pool_worker(self, node: int, best_seeds: np.ndarray, mc_sim: int, n_steps: int):
+        """
+        Function that runs in a single thread. Used only for parallel_fit
+
+        Parameters
+        -----------
+        node : node added to the seeds at this step to compute influence
+
+        best_seeds : array of seeds computed at previous steps of the Greedy Algorithm
+
+        mc_sim : montecarlo_simulation : number of MonteCarlo Simulations
+
+        n_steps_max : max number of steps in a simulation
+        """
         sampler = MonteCarloSampling(self.prob_matrix)
         seeds = np.copy(best_seeds)
         seeds[node] = 1  # add current node to seeds
@@ -41,6 +55,21 @@ class GreedyLearner(SingleInfluenceLearner):
         return node, influence
 
     def parallel_fit(self, budget: int, montecarlo_simulations: int, n_steps_max: int):
+        """
+        Greedy influence maximization algorithm. Execution in parallel
+        
+        At each step, a pool of workers computes the influence of the best seeds of the previous step plus a new node.
+        The node with the best marginal increase is added to the best seeds.
+        The number of iterations is given by the budget
+
+        Parameters
+        ---------
+        budget : budget for this social network
+
+        montecarlo_simulation : number of MonteCarlo Simulations
+
+        n_steps_max : max number of steps in a simulation
+        """
 
         max_influence = 0
         best_seeds = np.zeros(self.n_nodes)
@@ -59,7 +88,7 @@ class GreedyLearner(SingleInfluenceLearner):
                                                 args=(n, best_seeds, montecarlo_simulations, n_steps_max))
                         results_async.append(r_async)
 
-                for r in results_async:
+                for r in tqdm(results_async):
                     results.append(r.get())
 
                 pool.close()
@@ -83,7 +112,7 @@ class GreedyLearner(SingleInfluenceLearner):
 
     def fit(self, budget: int, montecarlo_simulations: int, n_steps_max: int):
         """
-        Greedy influence maximization algorithm
+        Greedy influence maximization algorithm. Serial execution
         
         Parameters
         ---------
@@ -126,6 +155,54 @@ class GreedyLearner(SingleInfluenceLearner):
             print("Node with best marginal increase at step %d: %d" % (i + 1, best_node))
 
         return best_seeds, max_influence
+
+    def cumulative_fit(self, budget: int, montecarlo_simulations: int, n_steps_max: int):
+        """
+        Greedy influence maximization algorithm. Serial execution. Returns an array with tuple (node_step_i , reward_step_i)
+        
+        Parameters
+        ---------
+        budget : budget for this social network
+
+        montecarlo_simulation : number of MonteCarlo Simulations
+
+        n_steps_max : max number of steps in a simulation
+        """
+
+        sampler = MonteCarloSampling(self.prob_matrix)
+
+        #max_influence = 0
+        best_seeds = np.zeros(self.n_nodes)
+        results = []
+        for i in range(budget):
+            #best_marginal_increase = 0
+            step_influence = 0
+
+            for n in tqdm(range(self.n_nodes)):
+                if best_seeds[n] == 0:
+                    # computer marginal increase
+                    seeds = np.copy(best_seeds)
+                    seeds[n] = 1  # add current node to seeds
+
+                    # computer marginal increase
+                    nodes_probabilities = sampler.mc_sampling(seeds, montecarlo_simulations, n_steps_max)
+                    influence = np.sum(nodes_probabilities)
+
+                    #marginal_increase = influence - step_influence
+
+                    if influence >= step_influence:
+                        best_node = n
+                        #best_marginal_increase = marginal_increase
+                        step_influence = influence
+                # if n % 100 == 0:
+                #     print("Analysing node: %d of %d" % (n, self.n_nodes))
+
+            best_seeds[best_node] = 1
+            #max_influence = step_influence
+            results.append((best_node, step_influence))
+            print("Node with best marginal increase at step %d: %d" % (i + 1, best_node))
+
+        return results
 
 
 class ExactSolutionLearner(SingleInfluenceLearner):
