@@ -53,10 +53,12 @@ if __name__ == "__main__":
     start = time.time()
 
     print("Start Budget Allocation..")
-    budget_allocator.joint_influence_maximization()
+    #budget_allocator.joint_influence_maximization()
+    budget_allocator.test_join_influence()
     
-    # results = {}
+
     # # Plot the approximation error as the parameters of the algorithms vary for every specific network.
+    # results = {}
     # for i in range(1,monte_carlo_simulations+1):
     #     seeds, influence = influence_learner.parallel_fit(budget, montecarlo_simulations=i, n_steps_max=n_steps_max)
     #     results[i] = influence
