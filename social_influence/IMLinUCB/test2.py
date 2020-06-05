@@ -1,3 +1,4 @@
+from social_influence import Helper
 from social_influence.IMLinUCB.IMLinUCBEnviroment import *
 from social_influence.IMLinUCB.IMLinUCBLearner import *
 from social_influence.IMLinUCB.create_dataset import *
@@ -6,15 +7,26 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
+from social_influence.social_setup import SocialNetwork
+from social_influence.const import FEATURE_MAX
 
 budget = 2
 n_steps = 2
 n_nodes = 20
 n_features = 5
 T = 30
-n_experiment = 2
+n_experiment = 30
 parameters = np.array([0.7, 0.01, 0.3, 0.1, 0.2])
-prob_matrix, features_edge_matrix, n_edges = create_dataset2(n_nodes, n_features, parameters)
+
+helper = Helper()
+twitter = helper.read_dataset("twitter_fixed")
+social_network = SocialNetwork(twitter, parameters[2], FEATURE_MAX, max_nodes=n_nodes)
+
+# prob_matrix, features_edge_matrix, n_edges = create_dataset2(n_nodes, n_features, parameters)
+prob_matrix = social_network.get_matrix()
+n_edges = social_network.get_edge_count()
+features_edge_matrix = social_network.get_edge_features_matrix()
+
 reward_per_experiment = []
 regret_per_experiment = []
 
@@ -46,11 +58,11 @@ for exp in range(n_experiment):
 another_env = IMLinUCBEnviroment(prob_matrix, budget, n_steps)
 #optimal_reward = another_env.opt()
 
-# plt.figure()
-# plt.xlabel("Time")
-# plt.ylabel("Regret")
-# plt.plot(np.mean(regret_per_experiment, axis=0), 'g')
-# plt.show()
+plt.figure()
+plt.xlabel("Time")
+plt.ylabel("Regret")
+plt.plot(np.mean(regret_per_experiment, axis=0), 'g')
+plt.savefig("plot.png")
 
 experiments = range(n_experiment)
 indexes = []
@@ -71,4 +83,5 @@ print(df)
 
 plt.figure()
 sns.lineplot(x="timestep", y="cumulative_regret", data=df)
-plt.show()
+# plt.show()
+plt.savefig("plot_seaborn.png")

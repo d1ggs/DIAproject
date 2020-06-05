@@ -59,3 +59,21 @@ class SocialNetwork:
 
     def get_n_nodes(self):
         return self.matrix.shape[0]
+
+    def get_edge_features_matrix(self):
+        n_edges = self.social_edges.shape[0]
+        feature_size = self.features.shape[1]
+        matrix = np.zeros(shape=(n_edges, n_edges, feature_size))
+
+        for i in range(self.social_edges.shape[0]):
+            node_a = self.social_edges[i][0]
+            node_b = self.social_edges[i][1]
+
+            # Write the activation probability only if the nodes are in range
+            if node_a < self.max_nodes and node_b < self.max_nodes:
+                matrix[node_a, node_b] = self.features[i]
+
+        return matrix
+
+    def get_edge_count(self):
+        return self.social_edges.shape[0]
