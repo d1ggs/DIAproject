@@ -17,7 +17,7 @@ class IMLinUCBEnviroment():
         self.budget = budget
         self.n_steps = n_steps
 
-    def simulate_episode(self, seeds, n_steps):
+    def simulate_episode(self, seeds,n_steps):
         """
         Identico a simulate episode della lezione però memorizzo sia gli edge attivati, sia quelli visti
         :param seeds:
@@ -27,13 +27,13 @@ class IMLinUCBEnviroment():
         t = 0
         probability_matrix = self.prob_matrix.copy()
         assert (seeds.shape[0] == self.prob_matrix.shape[0])
-        history = np.array([seeds])
-        active_nodes = seeds
-        newly_active_nodes = active_nodes
+        history = np.array([seeds.copy()])
+        active_nodes = seeds.copy()
+        newly_active_nodes = active_nodes.copy()
         all_activated_edges = np.zeros(probability_matrix.shape)
         all_seen_edges = np.zeros(probability_matrix.shape)
 
-        while (t < n_steps-1 and np.sum(newly_active_nodes) > 0):
+        while (t < n_steps and np.sum(newly_active_nodes) > 0):
             p = (probability_matrix.T * active_nodes).T
             activated_edges = p > np.random.rand(p.shape[0], p.shape[1])
             all_activated_edges += activated_edges
@@ -59,7 +59,7 @@ class IMLinUCBEnviroment():
         @return seen_edges: matrice binaria con (i,j)=1 se l'edge corrispondente è stato visto
 
         """
-        history, activated_edges, seen_edges = self.simulate_episode(seed, 3)
+        history, activated_edges, seen_edges = self.simulate_episode(seed,self.n_steps)
         n_activated_nodes = np.sum(history)
         #non voglio che in uno stesso round nodo venga attivato più volte
         activated_edges[activated_edges > 0] = 1
@@ -71,5 +71,5 @@ class IMLinUCBEnviroment():
         :return: il seed ottimo
         """
         greedy_learner = GreedyLearner(self.prob_matrix, self.n_nodes)
-        _ , best_reward = greedy_learner.fit(self.budget, 1000, self.n_steps)
+        _ , best_reward = greedy_learner.fit(self.budget, 5000, self.n_steps)
         return best_reward
