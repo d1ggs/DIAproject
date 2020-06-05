@@ -1,4 +1,4 @@
-from social_influence import Helper
+from social_influence import helper
 from social_influence.IMLinUCB.IMLinUCBEnviroment import *
 from social_influence.IMLinUCB.IMLinUCBLearner import *
 from social_influence.IMLinUCB.create_dataset import *
@@ -12,13 +12,14 @@ from social_influence.const import FEATURE_MAX
 
 budget = 2
 n_steps = 2
-n_nodes = 20
+n_nodes = 30
 n_features = 5
-T = 30
-n_experiment = 30
-parameters = np.array([0.7, 0.01, 0.3, 0.1, 0.2])
+T = 70
+n_experiment = 10
+parameters = np.asarray(
+        ((0.1, 0.3, 0.2, 0.2, 0.2), (0.3, 0.1, 0.2, 0.2, 0.2), (0.5, 0.1, 0.1, 0.1, 0.2)))  # parameters for each social
 
-helper = Helper()
+helper = helper.Helper()
 twitter = helper.read_dataset("twitter_fixed")
 social_network = SocialNetwork(twitter, parameters[2], FEATURE_MAX, max_nodes=n_nodes)
 
@@ -31,7 +32,7 @@ reward_per_experiment = []
 regret_per_experiment = []
 
 env = IMLinUCBEnviroment(prob_matrix, budget, n_steps)
-optimal_reward = env.opt(parallel=True)
+optimal_reward = env.opt(parallel=False)
 
 for exp in range(n_experiment):
   #  env = IMLinUCBEnviroment(prob_matrix, budget, n_steps)
