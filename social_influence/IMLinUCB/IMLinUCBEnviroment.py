@@ -65,11 +65,14 @@ class IMLinUCBEnviroment():
         activated_edges[activated_edges > 0] = 1
         return n_activated_nodes, activated_edges, seen_edges
 
-    def opt(self):
+    def opt(self, parallel=False):
         """
 
         :return: il seed ottimo
         """
         greedy_learner = GreedyLearner(self.prob_matrix, self.n_nodes)
-        _ , best_reward = greedy_learner.fit(self.budget, 5000, self.n_steps)
+        if parallel:
+            _, best_reward = greedy_learner.parallel_fit(self.budget, 5000, self.n_steps)
+        else:
+            _, best_reward = greedy_learner.fit(self.budget, 5000, self.n_steps)
         return best_reward
