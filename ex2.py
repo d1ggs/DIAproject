@@ -1,5 +1,6 @@
 import numpy as np
 import time
+import datetime
 import argparse
 
 from social_influence.const import FEATURE_MAX
@@ -21,11 +22,13 @@ if __name__ == "__main__":
     parser.add_argument("--mc", default=3, type=int, help="Specify how many mc simulations")
     parser.add_argument("--steps", default=5, type=int, help="Specify how many steps per simulation")
     parser.add_argument("--budget", default=5, type=int, help="Specify budget")
+    parser.add_argument("--max_n", default=-1, type=int, help="Specify max number of nodes")
     args = parser.parse_args()
 
     monte_carlo_simulations = args.mc
     n_steps_max = args.steps
     budget = args.budget
+    max_nodes = args.max_n
 
     #TODO include feature weights directly in the dataset?
     parameters = np.asarray(
@@ -38,20 +41,22 @@ if __name__ == "__main__":
     if args.test:
         n_nodes = 300
         prob_matrix = np.random.uniform(0.0,0.01,(n_nodes,n_nodes))
+        #prob_matrix = np.array([[0 ,0 ,1],[0, 0 ,1 ], [0, 0 ,0]])
+
         plot_name = plot_name+"_random"
     else:
         if args.fb:
-            dataset = helper.read_dataset("facebook")
+            dataset = helper.read_dataset("facebook_fixed")
             param = parameters[0]
             plot_name = plot_name+"_facebook"
-        elif args.t:
+        elif args.g:
             #TODO gplus has node values too high
-            dataset = helper.read_dataset("gplus")
+            dataset = helper.read_dataset("gplus_fixed")
             param = parameters[1]
             plot_name = plot_name+"_gplus"
-        elif args.g:
+        elif args.t:
             #TODO twitter has node values too high
-            dataset = helper.read_dataset("twitter")
+            dataset = helper.read_dataset("twitter_fixed")
             param = parameters[2]
             plot_name = plot_name+"_twitter"
         else:
@@ -59,11 +64,10 @@ if __name__ == "__main__":
             exit(-1)
 
 
-        social = SocialNetwork(dataset, param, FEATURE_MAX)
+        social = SocialNetwork(dataset, param, FEATURE_MAX, max_nodes=max_nodes)
         prob_matrix = social.get_matrix().copy()
-        n_nodes = prob_matrix.shape[0]
-
-
+        n_nodes = social.get_n_nodes()
+        
     print("Nodes #: %d" % n_nodes)
     influence_learner = GreedyLearner(prob_matrix, n_nodes)
 
