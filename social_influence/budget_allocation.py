@@ -1,9 +1,9 @@
 import numpy as np
 from social_influence.influence_maximisation import GreedyLearner
 
-class GreedyBudgetAllocation:
+class GreedyBudgetAllocation(object):
 
-    def __init__(self, social1, social2, social3, budget_total,  mc_simulations, n_steps_montecarlo):
+    def __init__(self, social1, social2, social3, budget_total,  mc_simulations, n_steps_montecarlo, social_prices=None):
 
         """
         In the main we need to pass 3 social media objects through the main
@@ -14,6 +14,12 @@ class GreedyBudgetAllocation:
         social3: three social network object to be passed
         budget_total
         """
+
+        if social_prices:
+            self.social_prices = social_prices
+        else:
+            self.social_prices = [1, 1, 1]
+
         print(social1.get_matrix().shape, social1.get_n_nodes())
         self.social1_learner = GreedyLearner(social1.get_matrix(), social1.get_n_nodes())
         self.social2_learner = GreedyLearner(social2.get_matrix(), social2.get_n_nodes())
@@ -23,12 +29,13 @@ class GreedyBudgetAllocation:
         self.mc_simulations = mc_simulations
         self.n_steps_montecarlo = n_steps_montecarlo
 
-        # Pre-compute social influience results and then transforms it into a dictionary budget->influence
+        # Pre-compute social influence results and then transform it into a dictionary budget->influence
         influence_results1, influence_results2, influence_results3 = self.joint_influence(verbose=True)
         self.cumulative_influence1 = self.dictionary_creation(influence_results1)
         self.cumulative_influence2 = self.dictionary_creation(influence_results2)
         self.cumulative_influence3 = self.dictionary_creation(influence_results3)
         print(self.cumulative_influence1, self.cumulative_influence2, self.cumulative_influence3)
+
 
     @staticmethod
     def dictionary_creation(influence_tuples):
@@ -69,9 +76,9 @@ class GreedyBudgetAllocation:
         # While the sum of a budget is not equal to the maximum budget, continues the incrementation. Then returns the optimal value
         while not sum(budget) == self.budget_total:
             # Increments the budget of the social with the maximum increase between the three
-            argument_to_increment = np.argmax([self.cumulative_influence1[budget[0]+1] - self.cumulative_influence1[budget[0]],
-                                               self.cumulative_influence2[budget[1]+1] - self.cumulative_influence2[budget[1]],
-                                               self.cumulative_influence3[budget[2]+1] - self.cumulative_influence3[budget[2]]])
+            argument_to_increment = np.argmax([(self.cumulative_influence1[budget[0]+1] - self.cumulative_influence1[budget[0]]) * self.social_prices[0],
+                                               (self.cumulative_influence2[budget[1]+1] - self.cumulative_influence2[budget[1]]) * self.social_prices[1],
+                                               (self.cumulative_influence3[budget[2]+1] - self.cumulative_influence3[budget[2]]) * self.social_prices[2]])
             budget[argument_to_increment] += 1
 
 
@@ -83,11 +90,6 @@ class GreedyBudgetAllocation:
 
 
 
-
-
-
-
-        
 
 
 
