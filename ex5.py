@@ -21,6 +21,7 @@ from social_influence.helper import Helper
 from social_influence.social_setup import SocialNetwork
 from social_influence.mc_sampling import MonteCarloSampling
 from social_influence.influence_maximisation import GreedyLearner
+from social_influence.budget_allocation import GreedyBudgetAllocation
 
 # Social influence constants
 MAX_NODES = 300
@@ -38,7 +39,7 @@ def run_experiment(initial_seeds, n_arms, prices, horizon, conversion_curve, sam
     seeds = np.copy(initial_seeds)
     # Reset the environments
     env = StationaryEnvironment(prices=prices, curve=conversion_curve)
-    ucb_learner = UCBLearner(n_arms, prices)
+    ucb_learner = UCBLearner(prices)
     ts_learner = TSLearner(prices)
     regrets_ucb_per_timestep = []
     regrets_ts_per_timestep = []
@@ -83,9 +84,14 @@ def run_experiment(initial_seeds, n_arms, prices, horizon, conversion_curve, sam
 
 if __name__ == "__main__":
 
-    # TODO divide budget among social networks
+    budget_allocator = GreedyBudgetAllocation()
 
-    budget_1, budget_2, budget_3 = 10, 10, 10
+    for _ in N_EXPERIMENTS:
+        for _ in TIME_HORIZON:
+            budget_1, budget_2, budget_3 = 10, 10, 10
+
+
+
 
     # Simulate Social Network
 

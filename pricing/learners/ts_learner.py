@@ -5,7 +5,7 @@ import numpy as np
 class TSLearner(Learner):
     def __init__(self, prices: list):
         self.n_arms = len(prices)
-        super().__init__(len(prices))
+        super().__init__(prices)
 
         # self.prices = np.random.randint(0, 100, self.n_arms)
         # print(self.prices)

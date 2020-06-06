@@ -42,7 +42,7 @@ def run_experiment(initial_seeds, n_arms, prices, horizon, conversion_curves, sa
     swts_env = NonStationaryEnvironment(curves=conversion_curves, horizon=horizon, prices=prices)
     swts_learner = SWTSLearner(prices=prices, horizon=horizon, const=60)
     swucb_env = NonStationaryEnvironment(curves=conversion_curves, horizon=horizon, prices=prices)
-    swucb_learner = SWUCBLearner(n_arms=n_arms, horizon=horizon, prices=prices, const=60)
+    swucb_learner = SWUCBLearner(horizon=horizon, prices=prices, const=60)
     regrets_swts_per_timestep = []
     regrets_swucb_per_timestep = []
     regrets_ts_per_timestep = []

@@ -3,10 +3,9 @@ from pricing.learners.learner import Learner
 
 
 class UCBLearner(Learner):
-    def __init__(self, n_arms: int, prices: list, constant=1):
-        super().__init__(n_arms)
-
-        assert n_arms == len(prices), "Number of prices different from the number of arms"
+    def __init__(self, prices: list, constant=1):
+        n_arms = len(prices)
+        super().__init__(prices)
 
         self.const = constant
         self.prices = prices
@@ -25,7 +24,7 @@ class UCBLearner(Learner):
 
 class SWUCBLearner(UCBLearner):
     """Class implementing SW-UCB# state-of-the-art bandit for non-stationary contexts"""
-    def __init__(self, n_arms: int, horizon: int, prices: list, const: int, alpha=2, verbose = False):
+    def __init__(self, horizon: int, prices: list, const: int, alpha=2, verbose=False):
         """
         :param n_arms: number of conversion rates to be learned
         :param horizon: the number of samples that are to be considered when updating distributions
@@ -33,7 +32,7 @@ class SWUCBLearner(UCBLearner):
         :param alpha: SW-UCB alpha parameter
         :param const: adjustment constant to consider the fact that at each time step we pull more than once
         """
-        super().__init__(n_arms, prices)
+        super().__init__(prices)
         self.horizon = horizon * const
         self.alpha = alpha
         self.pulls = []
