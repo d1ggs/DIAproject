@@ -11,7 +11,7 @@ class MonteCarloSampling(object):
 
     def __init__(self, edge_activations : np.ndarray):
         super().__init__()
-        self.edge_activations = edge_activations
+        self.edge_activations = edge_activations.copy()
         self.n_nodes = edge_activations.shape[0]
 
     def simulate_episode(self, seeds : np.ndarray, n_steps_max : int):
@@ -29,8 +29,8 @@ class MonteCarloSampling(object):
         assert (seeds.shape[0] == self.n_nodes)
         history = np.array([seeds])
 
-        active_nodes = seeds
-        newly_active_nodes = active_nodes  # node active in the current timestep
+        active_nodes = seeds.copy()
+        newly_active_nodes = active_nodes.copy()  # node active in the current timestep
         t = 0
 
         # Loop until either the time is exhausted or there is no new active node
@@ -75,7 +75,6 @@ class MonteCarloSampling(object):
             for i in range(0, self.n_nodes):  # occurency of each node at each episode
                 if (len(np.argwhere(episode[:, i] == 1)) > 0):  # this checks if node i activated in this episode
                     z[i] += 1
-
         estimated_prob = z / n_episodes  # estimated probabilities up to simulation n
         # estimated_prob_for_simulation.append(estimated_prob)
 

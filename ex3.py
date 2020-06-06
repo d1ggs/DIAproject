@@ -8,7 +8,6 @@ from social_influence.social_setup import SocialNetwork
 from social_influence.utils import plot_approx_error
 from social_influence.budget_allocation import GreedyBudgetAllocation
 
-
 if __name__ == "__main__":
 
     # Simulate Social Network
@@ -24,7 +23,7 @@ if __name__ == "__main__":
     n_steps_max = args.steps
     budget = args.budget
 
-    #TODO include feature weights directly in the dataset?
+    # TODO include feature weights directly in the dataset?
     parameters = np.asarray(
         ((0.1, 0.3, 0.2, 0.2, 0.2), (0.3, 0.1, 0.2, 0.2, 0.2), (0.5, 0.1, 0.1, 0.1, 0.2)))  # parameters for each social
 
@@ -36,9 +35,9 @@ if __name__ == "__main__":
     if args.test:
         max_node = 300
 
-    print("Initializing Social Networks...")  
+    print("Initializing Social Networks...")
 
-    facebook = helper.read_dataset("facebook_fixed",)
+    facebook = helper.read_dataset("facebook_fixed", )
     social1 = SocialNetwork(facebook, parameters[0], FEATURE_MAX, max_nodes=max_node)
 
     gplus = helper.read_dataset("gplus_fixed")
@@ -47,12 +46,13 @@ if __name__ == "__main__":
     twitter = helper.read_dataset("twitter_fixed")
     social3 = SocialNetwork(twitter, parameters[2], FEATURE_MAX, max_nodes=max_node)
 
-
-    budget_allocator = GreedyBudgetAllocation(social1,social2,social3,budget,monte_carlo_simulations,n_steps_max)
+    budget_allocator = GreedyBudgetAllocation(social1, social2, social3, budget, monte_carlo_simulations, n_steps_max)
 
     start = time.time()
 
     print("Start Budget Allocation..")
+    # budget_allocator.joint_influence_maximization()
+    budget_allocator.test_join_influence()
     #budget_allocator.joint_influence_maximization()
     #budget_allocator.test_join_influence()
     budget_allocator.joint_influence_maximization()
@@ -67,13 +67,12 @@ if __name__ == "__main__":
     #     if i == monte_carlo_simulations:
     #         seeds_max_mc = seeds
     #         infl_max_mc = influence
-    
+
     end = time.time()
     hours, rem = divmod(end - start, 3600)
     minutes, seconds = divmod(rem, 60)
     print("Training completed")
     print("Time Elapsed: %d:%d:%d" % (hours, minutes, seconds))
-
 
     # plot_approx_error(results,infl_max_mc ,plot_name=plot_name)
 

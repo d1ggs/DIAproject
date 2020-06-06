@@ -2,7 +2,6 @@ from social_influence.influence_maximisation import *
 from social_influence.mc_sampling import *
 
 
-
 class IMLinUCBLearner():
     def __init__(self, n_features, feature_matrix_edges, budget, n_steps):
         """
@@ -15,9 +14,9 @@ class IMLinUCBLearner():
         self.M = np.eye(n_features)
         self.B = np.atleast_2d(np.zeros(n_features)).T
         self.collected_rewards = []
-        self.feature_matrix_edges = feature_matrix_edges
-        self.sigma = 10
-        self.c = 1
+        self.feature_matrix_edges = feature_matrix_edges.copy()
+        self.sigma = 1
+        self.c = 2
         self.budget = budget
         self.n_steps = n_steps
         self.n_nodes = feature_matrix_edges.shape[0]
@@ -52,7 +51,7 @@ class IMLinUCBLearner():
                 ucb = np.dot(theta.T, arm) + self.c * np.sqrt(np.dot(arm.T, np.dot(np.linalg.inv(self.M), arm)))
                 UCB_matrix[i, j] = ucb[0, 0]
         UCB_matrix = self.project_matrix(UCB_matrix)
-        print(UCB_matrix)
+      #  print(UCB_matrix)
         oracolo = GreedyLearner(UCB_matrix, self.n_nodes)
         pulled_arm, _ = oracolo.fit(self.budget, 10, self.n_steps)
         return pulled_arm
@@ -74,5 +73,3 @@ class IMLinUCBLearner():
                     self.M = self.M + self.sigma ** (-2) * np.dot(arm.T, arm)
                     if activated_edges[i, j] > 0:
                         self.B = self.B + arm.T
-
-
