@@ -54,7 +54,8 @@ if __name__ == "__main__":
 
     print("Start Budget Allocation..")
     #budget_allocator.joint_influence_maximization()
-    budget_allocator.test_join_influence()
+    #budget_allocator.test_join_influence()
+    budget_allocator.joint_influence_maximization()
     
 
     # # Plot the approximation error as the parameters of the algorithms vary for every specific network.
