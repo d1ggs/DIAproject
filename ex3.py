@@ -34,7 +34,7 @@ if __name__ == "__main__":
     max_node = args.max_n
     # fake values used for debugging
     if args.test:
-        max_node = 300
+        max_node = 20
 
     print("Initializing Social Networks...")
 
@@ -53,7 +53,7 @@ if __name__ == "__main__":
         budget_allocator = GreedyBudgetAllocation(social1, social2, social3, budget, monte_carlo_simulations, n_steps_max)
 
         print("Start Budget Allocation..")
-        budget, joint_influence = budget_allocator.joint_influence_maximization()
+        budget, joint_influence, _ = budget_allocator.joint_influence_maximization()
     
     else:
     # # Plot the approximation error as the parameters of the algorithms vary for every specific network.
@@ -61,7 +61,7 @@ if __name__ == "__main__":
         results = {}
         for i in range(1,monte_carlo_simulations+1):
             budget_allocator = GreedyBudgetAllocation(social1, social2, social3, budget, mc_simulations=i, n_steps_montecarlo=n_steps_max)
-            budget_allocation, joint_influence = budget_allocator.joint_influence_maximization()
+            budget_allocation, joint_influence, _ = budget_allocator.joint_influence_maximization()
             results[i] = joint_influence
 
             if i == monte_carlo_simulations:
