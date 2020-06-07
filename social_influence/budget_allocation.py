@@ -137,12 +137,14 @@ class GreedyBudgetAllocation(object):
         if self.verbose:
             print("Optimal budget: ", budget, "Optimal joint influence: ", joint_influence)
 
-        seeds1 = np.array([v[0] for k,v in self.cumulative_influence[0].items()])
-        seeds2 = np.array([v[0] for k,v in self.cumulative_influence[1].items()])
-        seeds3 = np.array([v[0] for k,v in self.cumulative_influence[2].items()])
-        seeds = {0: np.array(seeds1),
-                 1: np.array(seeds2),
-                 2: np.array(seeds3)}
+        seeds1 = np.array([v[0] for k,v in self.cumulative_influence[0].items()])[:budget[0]]
+        seeds2 = np.array([v[0] for k,v in self.cumulative_influence[1].items()])[:budget[1]]
+        seeds3 = np.array([v[0] for k,v in self.cumulative_influence[2].items()])[:budget[2]]
+        seeds = {0: seeds1,
+                 1: seeds2,
+                 2: seeds3}
+
+        print(seeds)
 
         return budget, joint_influence, seeds
 
