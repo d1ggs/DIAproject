@@ -47,7 +47,7 @@ class GreedyBudgetAllocation(object):
         budget = 1
         seeds = []
         for seed, influence in influence_tuples:
-            dictionary[budget] = influence
+            dictionary[budget] = [seed, influence]
             budget += 1
             seeds.append(seed)
         return dictionary, seeds
