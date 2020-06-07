@@ -58,9 +58,9 @@ class GreedyBudgetAllocation(object):
         if verbose:
             print("Pre-computing social influence")
         # results is an array composed by tuple where each tuple is (node_step_i , influence_step_i)
-        results1 = self.social1_learner.cumulative_fit(self.budget_total-2, self.mc_simulations, self.n_steps_montecarlo)
-        results2 = self.social2_learner.cumulative_fit(self.budget_total-2, self.mc_simulations, self.n_steps_montecarlo)
-        results3 = self.social3_learner.cumulative_fit(self.budget_total-2, self.mc_simulations, self.n_steps_montecarlo)
+        results1 = self.social1_learner.cumulative_parallel_fit(self.budget_total-2, self.mc_simulations, self.n_steps_montecarlo)
+        results2 = self.social2_learner.cumulative_parallel_fit(self.budget_total-2, self.mc_simulations, self.n_steps_montecarlo)
+        results3 = self.social3_learner.cumulative_parallel_fit(self.budget_total-2, self.mc_simulations, self.n_steps_montecarlo)
         if verbose:
             print(results1, results2, results3)
         return results1, results2, results3

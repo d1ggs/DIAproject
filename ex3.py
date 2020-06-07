@@ -46,15 +46,10 @@ if __name__ == "__main__":
     twitter = helper.read_dataset("twitter_fixed")
     social3 = SocialNetwork(twitter, parameters[2], FEATURE_MAX, max_nodes=max_node)
 
+    start = time.time()
     budget_allocator = GreedyBudgetAllocation(social1, social2, social3, budget, monte_carlo_simulations, n_steps_max)
 
-    start = time.time()
-
     print("Start Budget Allocation..")
-    # budget_allocator.joint_influence_maximization()
-    budget_allocator.test_join_influence()
-    #budget_allocator.joint_influence_maximization()
-    #budget_allocator.test_join_influence()
     budget_allocator.joint_influence_maximization()
     
 
