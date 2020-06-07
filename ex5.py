@@ -152,7 +152,7 @@ if __name__ == "__main__":
 
         for _ in range(TIME_HORIZON):
             weights = [ts_learners[i].get_last_best_price() for i in range(3)]
-            budget, seeds = budget_allocator.joint_influence_maximization(weights=weights)
+            budget, _, seeds = budget_allocator.joint_influence_maximization(weights=weights)
 
             for i in range(3):
 
