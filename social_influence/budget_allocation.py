@@ -30,7 +30,7 @@ class GreedyBudgetAllocation(object):
         self.n_steps_montecarlo = n_steps_montecarlo
 
         # Pre-compute social influence results and then transform it into a dictionary budget->influence
-        influence_results1, influence_results2, influence_results3 = self.joint_influence(verbose=True)
+        influence_results1, influence_results2, influence_results3 = self.step_joint_influence(verbose=True)
         self.cumulative_influence1 = self.dictionary_creation(influence_results1)
         self.cumulative_influence2 = self.dictionary_creation(influence_results2)
         self.cumulative_influence3 = self.dictionary_creation(influence_results3)
@@ -47,7 +47,7 @@ class GreedyBudgetAllocation(object):
         dictionary = {}
         budget = 1
         for seed, influence in influence_tuples:
-            dictionary[budget] = influence
+            dictionary[budget] = [seed,influence]
             budget += 1
         return dictionary
 
@@ -65,6 +65,35 @@ class GreedyBudgetAllocation(object):
             print(results1, results2, results3)
         return results1, results2, results3
 
+    def step_joint_influence(self, verbose=False):
+        """"
+        Pre-computes social influence at each step for each social
+        """
+        if verbose:
+            print("Pre-computing social influence")
+        # results is an array composed by tuple where each tuple is (node_step_i , influence_step_i)
+        results1 = []
+        best_node1, influence_1 = self.social1_learner.step_fit( self.mc_simulations, self.n_steps_montecarlo)
+        results1.append((best_node1, influence_1))
+        best_node2, influence_2 = self.social1_learner.step_fit( self.mc_simulations, self.n_steps_montecarlo, resume_seeds=[best_node1])
+        results1.append((best_node2, influence_2))
+
+
+        results2 = []
+        best_node1, influence_1 = self.social2_learner.step_fit( self.mc_simulations, self.n_steps_montecarlo)
+        results2.append((best_node1, influence_1))
+        best_node2, influence_2 = self.social2_learner.step_fit( self.mc_simulations, self.n_steps_montecarlo, resume_seeds=[best_node1])
+        results2.append((best_node2, influence_2))
+
+        results3 = []
+        best_node1, influence_1 = self.social3_learner.step_fit( self.mc_simulations, self.n_steps_montecarlo)
+        results3.append((best_node1, influence_1))
+        best_node2, influence_2 = self.social3_learner.step_fit( self.mc_simulations, self.n_steps_montecarlo, resume_seeds=[best_node1])
+        results3.append((best_node2, influence_2))
+        if verbose:
+            print(results1, results2, results3)
+        return results1, results2, results3
+
     def joint_influence_maximization(self):
         """"
 
@@ -76,14 +105,40 @@ class GreedyBudgetAllocation(object):
         # While the sum of a budget is not equal to the maximum budget, continues the incrementation. Then returns the optimal value
         while not sum(budget) == self.budget_total:
             # Increments the budget of the social with the maximum increase between the three
-            argument_to_increment = np.argmax([(self.cumulative_influence1[budget[0]+1] - self.cumulative_influence1[budget[0]]) * self.social_prices[0],
-                                               (self.cumulative_influence2[budget[1]+1] - self.cumulative_influence2[budget[1]]) * self.social_prices[1],
-                                               (self.cumulative_influence3[budget[2]+1] - self.cumulative_influence3[budget[2]]) * self.social_prices[2]])
+            argument_to_increment = np.argmax([(self.cumulative_influence1[budget[0]+1][1] - self.cumulative_influence1[budget[0]][1]) * self.social_prices[0],
+                                               (self.cumulative_influence2[budget[1]+1][1] - self.cumulative_influence2[budget[1]][1]) * self.social_prices[1],
+                                               (self.cumulative_influence3[budget[2]+1][1] - self.cumulative_influence3[budget[2]][1]) * self.social_prices[2]])
             budget[argument_to_increment] += 1
 
+            if sum(budget) != self.budget_total:
+                if argument_to_increment == 0:
+                    resume_seeds = []
+                    for i in range(1,int(budget[argument_to_increment])+1):
+                        resume_seeds.append(self.cumulative_influence1[i][0])
 
-        print("Optimal budget: ", budget, "Optimal joint influence: ", self.cumulative_influence1[budget[0]] + self.cumulative_influence2[budget[1]] + self.cumulative_influence3[budget[2]])
-        return budget
+                    best_node, influence = self.social1_learner.step_fit(self.mc_simulations, self.n_steps_montecarlo, resume_seeds=resume_seeds)
+                    self.cumulative_influence1[budget[argument_to_increment]+1] = [best_node, influence]
+
+                elif argument_to_increment == 1:
+                    resume_seeds = []
+                    for i in range(1,int(budget[argument_to_increment]+1)):
+                        resume_seeds.append(self.cumulative_influence2[i][0])
+
+                    best_node, influence = self.social2_learner.step_fit(self.mc_simulations, self.n_steps_montecarlo, resume_seeds=resume_seeds)
+                    self.cumulative_influence2[budget[argument_to_increment]+1] = [best_node, influence]
+
+                elif argument_to_increment == 2:
+                    resume_seeds = []
+                    for i in range(1,int(budget[argument_to_increment]+1)):
+                        resume_seeds.append(self.cumulative_influence3[i][0])
+    
+                    best_node, influence = self.social3_learner.step_fit(self.mc_simulations, self.n_steps_montecarlo, resume_seeds=resume_seeds)
+                    self.cumulative_influence3[budget[argument_to_increment]+1] = [best_node, influence]
+            
+        joint_influence =  self.cumulative_influence1[budget[0]] + self.cumulative_influence2[budget[1]] + self.cumulative_influence3[budget[2]]
+        
+        print("Optimal budget: ", budget, "Optimal joint influence: ", joint_influence)
+        return budget, joint_influence
 
 
 
