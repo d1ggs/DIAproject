@@ -204,6 +204,64 @@ class GreedyLearner(SingleInfluenceLearner):
 
         return results
 
+    def cumulative_parallel_fit(self, budget: int, montecarlo_simulations: int, n_steps_max: int):
+            """
+            Greedy influence maximization algorithm. Execution in parallel. Returns an array with tuple (node_step_i , reward_step_i)
+            
+            At each step, a pool of workers computes the influence of the best seeds of the previous step plus a new node.
+            The node with the best marginal increase is added to the best seeds.
+            The number of iterations is given by the budget
+
+            Parameters
+            ---------
+            budget : budget for this social network
+
+            montecarlo_simulation : number of MonteCarlo Simulations
+
+            n_steps_max : max number of steps in a simulation
+            """
+
+            max_influence = 0
+            best_seeds = np.zeros(self.n_nodes)
+            
+            print("Start Greedy Influence Maximisation with budget: %d, mc_simulations: %d, n_steps_max: %d" % (budget, montecarlo_simulations, n_steps_max))
+            cumulative_results = []
+            for i in range(budget):
+                #best_marginal_increase = 0 
+                step_influence = 0
+
+                results_async = []
+                results = []
+                with Pool() as pool:
+                    for n in range(self.n_nodes):
+                        if best_seeds[n] == 0:
+                            r_async = pool.apply_async(self.pool_worker,
+                                                    args=(n, best_seeds, montecarlo_simulations, n_steps_max))
+                            results_async.append(r_async)
+
+                    for r in tqdm(results_async):
+                        results.append(r.get())
+
+                    pool.close()
+
+                for res in results:
+                    n, influence = res
+                    #marginal_increase = influence - step_influence
+                    
+                    if influence >= step_influence:
+                        best_node = n
+                        #best_marginal_increase = marginal_increase
+                        step_influence = influence
+
+
+                best_seeds[best_node] = 1
+                max_influence = step_influence
+                cumulative_results.append((best_node, step_influence))
+                print("Node with best marginal increase at step %d: %d" % (i + 1, best_node))
+
+            print('-'*100)
+            return cumulative_results
+
 
 class ExactSolutionLearner(SingleInfluenceLearner):
     """
