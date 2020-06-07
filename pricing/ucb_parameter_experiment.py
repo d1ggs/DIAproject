@@ -66,7 +66,7 @@ for c in tqdm(C_LIST):
     regret_per_experiment_ucb = []
 
     for e in range(N_EXPERIMENTS):
-        ucb_learner = UCBLearner(N_ARMS, PRICES, constant=c)
+        ucb_learner = UCBLearner(PRICES, constant=c)
 
         cumulative_regret_ucb = 0
 

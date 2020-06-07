@@ -48,7 +48,7 @@ for e in trange(N_EXPERIMENTS):
     swts_learner = SWTSLearner(prices=PRICES, horizon=TIME_HORIZON, const=10)
 
     swucb_env = NonStationaryEnvironment(curves=curves, horizon=TIME_HORIZON, prices=PRICES)
-    swucb_learner = SWUCBLearner(n_arms=N_ARMS, horizon=TIME_HORIZON, prices=PRICES, const=10)
+    swucb_learner = SWUCBLearner(horizon=TIME_HORIZON, prices=PRICES, const=10)
 
     regrets_swts_per_timestep = []
     regrets_swucb_per_timestep = []
