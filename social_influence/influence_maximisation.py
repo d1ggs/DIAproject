@@ -156,7 +156,7 @@ class GreedyLearner(SingleInfluenceLearner):
 
         return best_seeds, max_influence
 
-    def cumulative_fit(self, budget: int, montecarlo_simulations: int, n_steps_max: int):
+    def cumulative_fit(self, budget: int, montecarlo_simulations: int, n_steps_max: int, verbose=False):
         """
         Greedy influence maximization algorithm. Serial execution. Returns an array with tuple (node_step_i , reward_step_i)
         
@@ -200,7 +200,8 @@ class GreedyLearner(SingleInfluenceLearner):
             best_seeds[best_node] = 1
             #max_influence = step_influence
             results.append((best_node, step_influence))
-            print("Node with best marginal increase at step %d: %d" % (i + 1, best_node))
+            if verbose:
+                print("Node with best marginal increase at step %d: %d" % (i + 1, best_node))
 
         return results
 

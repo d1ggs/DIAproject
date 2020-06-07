@@ -23,6 +23,7 @@ class Learner(object):
         # Store the reward
         self.rewards_per_arm[pulled_arm].append(reward)
         self.collected_rewards = np.append(self.collected_rewards, reward)
+        self.t = 0
 
     def get_last_best_price(self):
         """
@@ -30,11 +31,14 @@ class Learner(object):
         :return: the value of the best price
         """
 
+        if self.t == 0:
+            return np.random.choice(self.prices)
+
         expected_reward = np.mean(self.rewards_per_arm, axis=1)
         for i in range(len(expected_reward)):
             expected_reward[i] *= self.prices[i]
 
-        best_price_index = np.argmax(expected_reward)[0]
+        best_price_index = np.argmax(expected_reward)
 
         return self.prices[best_price_index]
 

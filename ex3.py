@@ -51,10 +51,7 @@ if __name__ == "__main__":
     start = time.time()
 
     print("Start Budget Allocation..")
-    # budget_allocator.joint_influence_maximization()
-    budget_allocator.test_join_influence()
-    #budget_allocator.joint_influence_maximization()
-    #budget_allocator.test_join_influence()
+
     budget_allocator.joint_influence_maximization()
     
 
