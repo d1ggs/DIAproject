@@ -264,7 +264,7 @@ class GreedyLearner(SingleInfluenceLearner):
         
     def step_fit(self, montecarlo_simulations: int, n_steps_max: int, resume_seeds=None):
         """
-        Greedy influence maximization algorithm. Serial execution. Returns an array with tuple (node_step_i , reward_step_i)
+        Compute only one step
         
         Parameters
         ---------
@@ -302,7 +302,6 @@ class GreedyLearner(SingleInfluenceLearner):
             #     print("Analysing node: %d of %d" % (n, self.n_nodes))
 
         best_seeds[best_node] = 1
-            #max_influence = step_influence
 
         return (best_node, step_influence)
 

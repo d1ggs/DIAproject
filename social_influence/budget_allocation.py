@@ -111,31 +111,27 @@ class GreedyBudgetAllocation(object):
             budget[argument_to_increment] += 1
 
             if sum(budget) != self.budget_total:
+
                 if argument_to_increment == 0:
-                    resume_seeds = []
-                    for i in range(1,int(budget[argument_to_increment])+1):
-                        resume_seeds.append(self.cumulative_influence1[i][0])
-
-                    best_node, influence = self.social1_learner.step_fit(self.mc_simulations, self.n_steps_montecarlo, resume_seeds=resume_seeds)
-                    self.cumulative_influence1[budget[argument_to_increment]+1] = [best_node, influence]
-
+                    learner = self.social1_learner
+                    cumulative_influence = self.cumulative_influence1
                 elif argument_to_increment == 1:
-                    resume_seeds = []
-                    for i in range(1,int(budget[argument_to_increment]+1)):
-                        resume_seeds.append(self.cumulative_influence2[i][0])
-
-                    best_node, influence = self.social2_learner.step_fit(self.mc_simulations, self.n_steps_montecarlo, resume_seeds=resume_seeds)
-                    self.cumulative_influence2[budget[argument_to_increment]+1] = [best_node, influence]
-
+                    learner = self.social2_learner
+                    cumulative_influence = self.cumulative_influence2
                 elif argument_to_increment == 2:
-                    resume_seeds = []
-                    for i in range(1,int(budget[argument_to_increment]+1)):
-                        resume_seeds.append(self.cumulative_influence3[i][0])
-    
-                    best_node, influence = self.social3_learner.step_fit(self.mc_simulations, self.n_steps_montecarlo, resume_seeds=resume_seeds)
-                    self.cumulative_influence3[budget[argument_to_increment]+1] = [best_node, influence]
+                    learner = self.social3_learner
+                    cumulative_influence = self.cumulative_influence3
+
+                
+                resume_seeds = []
+                for i in range(1,int(budget[argument_to_increment])+1):
+                    resume_seeds.append(cumulative_influence[i][0])
+
+                best_node, influence = learner.step_fit(self.mc_simulations, self.n_steps_montecarlo, resume_seeds=resume_seeds)
+                cumulative_influence[budget[argument_to_increment]+1] = [best_node, influence]
+
             
-        joint_influence =  self.cumulative_influence1[budget[0]] + self.cumulative_influence2[budget[1]] + self.cumulative_influence3[budget[2]]
+        joint_influence =  self.cumulative_influence1[budget[0]][1] + self.cumulative_influence2[budget[1]][1] + self.cumulative_influence3[budget[2]][1]
         
         print("Optimal budget: ", budget, "Optimal joint influence: ", joint_influence)
         return budget, joint_influence
