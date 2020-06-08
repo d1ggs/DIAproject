@@ -34,7 +34,7 @@ if __name__ == "__main__":
     max_node = args.max_n
     # fake values used for debugging
     if args.test:
-        max_node = 20
+        max_node = 300
 
     print("Initializing Social Networks...")
 
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     start = time.time()
 
     if not args.plot:
-        budget_allocator = GreedyBudgetAllocation(social1, social2, social3, budget, monte_carlo_simulations, n_steps_max)
+        budget_allocator = GreedyBudgetAllocation(social1, social2, social3, budget, monte_carlo_simulations, n_steps_max, verbose=True)
 
         print("Start Budget Allocation..")
         budget, joint_influence, _ = budget_allocator.joint_influence_maximization()
