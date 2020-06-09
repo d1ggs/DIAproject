@@ -262,48 +262,60 @@ class GreedyLearner(SingleInfluenceLearner):
             print('-'*100)
             return cumulative_results
         
-    def step_fit(self, montecarlo_simulations: int, n_steps_max: int, resume_seeds=None):
-        """
-        Compute only one step
+
+    def step_fit(self, montecarlo_simulations: int, n_steps_max: int, resume_seeds: list=None):
+            """
+            Perform only one step of the greedy influence maximisation. Used in point 3 for joint budget allocation.
+            Execution in parallel. Returns an array with tuple (node_step_i , reward_step_i)
+            
+            Parameters
+
+
+            montecarlo_simulation : number of MonteCarlo Simulations
+
+            n_steps_max : max number of steps in a simulation
+
+            resume_seed (List[int]) : array that contains seeds computed at previous steps of the algo
+
+            """
+
+
         
-        Parameters
-        ---------
+            best_seeds = np.zeros(self.n_nodes)
+            if resume_seeds:
+                best_seeds[resume_seeds] = 1
 
-        montecarlo_simulation : number of MonteCarlo Simulations
+            step_influence = 0
 
-        n_steps_max : max number of steps in a simulation
-        """
 
-        sampler = MonteCarloSampling(self.prob_matrix)
+            results_async = []
+            results = []
+            with Pool() as pool:
+                for n in range(self.n_nodes):
+                    if best_seeds[n] == 0:
+                        r_async = pool.apply_async(self.pool_worker,
+                                                args=(n, best_seeds, montecarlo_simulations, n_steps_max))
+                        results_async.append(r_async)
 
-        best_seeds = np.zeros(self.n_nodes)
-        if resume_seeds:
-            best_seeds[resume_seeds] = 1
+                for r in tqdm(results_async):
+                    results.append(r.get())
 
-        step_influence = 0
+                pool.close()
 
-        for n in tqdm(range(self.n_nodes)):
-            if best_seeds[n] == 0:
-                # computer marginal increase
-                seeds = np.copy(best_seeds)
-                seeds[n] = 1  # add current node to seeds
-
-                # computer marginal increase
-                nodes_probabilities = sampler.mc_sampling(seeds, montecarlo_simulations, n_steps_max)
-                influence = np.sum(nodes_probabilities)
-
+            for res in results:
+                n, influence = res
                 #marginal_increase = influence - step_influence
-
+                
                 if influence >= step_influence:
                     best_node = n
                     #best_marginal_increase = marginal_increase
                     step_influence = influence
-            # if n % 100 == 0:
-            #     print("Analysing node: %d of %d" % (n, self.n_nodes))
 
-        best_seeds[best_node] = 1
 
-        return (best_node, step_influence)
+            best_seeds[best_node] = 1
+
+            print('-'*100)
+            return (best_node,step_influence)
 
 
 class ExactSolutionLearner(SingleInfluenceLearner):
