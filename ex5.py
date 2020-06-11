@@ -34,55 +34,6 @@ PARAMETERS = np.array(
      [0.4, 0.1, 0.2, 0.2, 0.1],
      [0.5, 0.1, 0.1, 0.1, 0.2]])  # parameters for each social
 
-
-# def run_experiment(initial_seeds, n_arms, prices, horizon, conversion_curve, sampler):
-#     # Restore the seeds
-#     seeds = np.copy(initial_seeds)
-#     # Reset the environments
-#     env = StationaryEnvironment(prices=prices, curve=conversion_curve)
-#     ucb_learner = UCBLearner(prices)
-#     ts_learner = TSLearner(prices)
-#     regrets_ucb_per_timestep = []
-#     regrets_ts_per_timestep = []
-#     cumulative_regret_ts = cumulative_regret_ucb = 0
-#     tot = 0
-#     for i in range(horizon):
-#         # Advance the propagation in the social network
-#         seeds_vector = sampler.simulate_episode(seeds, 1)
-#
-#         if seeds_vector.shape[0] == 1:  # The propagation has stopped, no need to continue the loop
-#             break
-#
-#         seeds = seeds_vector[1]
-#         clicks = int(np.sum(seeds))
-#
-#         # Bandit pricing
-#
-#         # Choose a price for each user and compute reward
-#         for _ in range(clicks):
-#             # UCB learner
-#             pulled_arm = ucb_learner.pull_arm()
-#             reward = env.round(pulled_arm)
-#             ucb_learner.update(pulled_arm, reward)
-#
-#             instantaneous_regret = env.get_inst_regret(pulled_arm)
-#             cumulative_regret_ucb += instantaneous_regret
-#
-#             # TS learner
-#             pulled_arm = ts_learner.pull_arm()
-#             reward = env.round(pulled_arm)
-#             ts_learner.update(pulled_arm, reward)
-#
-#             instantaneous_regret = env.get_inst_regret(pulled_arm)
-#             cumulative_regret_ts += instantaneous_regret
-#
-#         regrets_ucb_per_timestep.append(cumulative_regret_ucb)
-#         regrets_ts_per_timestep.append(cumulative_regret_ts)
-#
-#     return regrets_ucb_per_timestep, regrets_ts_per_timestep
-
-
-
 if __name__ == "__main__":
 
 
@@ -127,9 +78,23 @@ if __name__ == "__main__":
     budget_allocator = GreedyBudgetAllocation(social_networks[0], social_networks[1], social_networks[2], TOTAL_BUDGET, monte_carlo_simulations, n_steps_max)
 
     print("\nPerforming experiments...")
+
+    original_envs = []
+
+    original_ts_learners = []
+
+    for i in range(3):
+        product = products[i]
+        product_id = product["product_id"]
+        seasons = product["seasons"]
+        season_id = seasons[0]["season_id"]
+        y = seasons[0]["y_values"]
+        curve = ProductConversionRate(product_id, season_id, N_ARMS, y)
+        original_envs.append(StationaryEnvironment(prices=PRICES, curve=curve))
+
+        original_ts_learners.append(TSLearner(PRICES))
+
     for _ in trange(N_EXPERIMENTS):
-        envs = []
-        ts_learners = []
         # ucb_learners = []
 
         cumulative_regret_ts = [0, 0, 0]
@@ -138,17 +103,10 @@ if __name__ == "__main__":
         regrets_ts_per_timestep = [[], [], []]
         # regrets_ucb_per_timestep = [[], [], []]
 
-        for i in range(3):
-            product = products[i]
-            product_id = product["product_id"]
-            seasons = product["seasons"]
-            season_id = seasons[0]["season_id"]
-            y = seasons[0]["y_values"]
-            curve = ProductConversionRate(product_id, season_id, N_ARMS, y)
-            envs.append(StationaryEnvironment(prices=PRICES, curve=curve))
+        envs = copy.deepcopy(original_envs)
 
-            # ucb_learners.append(UCBLearner(PRICES))
-            ts_learners.append(TSLearner(PRICES))
+        # ucb_learners.append(UCBLearner(PRICES))
+        ts_learners = copy.deepcopy(original_ts_learners)
 
         for _ in range(TIME_HORIZON):
             weights = [ts_learners[i].get_last_best_price() for i in range(3)]
