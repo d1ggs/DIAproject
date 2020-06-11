@@ -18,18 +18,18 @@ class GreedyBudgetAllocation(object):
         self.verbose = verbose
 
         print(social1.get_matrix().shape, social1.get_n_nodes())
-        self.social1_learner = GreedyLearner(social1.get_matrix(), social1.get_n_nodes())
-        self.social2_learner = GreedyLearner(social2.get_matrix(), social2.get_n_nodes())
-        self.social3_learner = GreedyLearner(social3.get_matrix(), social3.get_n_nodes())
-        self.social_list = [self.social1_learner, self.social2_learner, self.social3_learner]
+        social1_learner = GreedyLearner(social1.get_matrix(), social1.get_n_nodes())
+        social2_learner = GreedyLearner(social2.get_matrix(), social2.get_n_nodes())
+        social3_learner = GreedyLearner(social3.get_matrix(), social3.get_n_nodes())
+        self.social_list = [social1_learner, social2_learner, social3_learner]
         assert(budget_total >= 3)
         self.budget_total = budget_total
         self.mc_simulations = mc_simulations
         self.n_steps_montecarlo = n_steps_montecarlo
 
         # Pre-compute social influence results and then transform it into a dictionary budget->influence
-        self.cumulative_influence1, self.cumulative_influence2, self.cumulative_influence3 = self.initialization_step_joint_influence()
-        self.cumulative_influences = [self.cumulative_influence1, self.cumulative_influence2, self.cumulative_influence3]
+        cumulative_influence1, cumulative_influence2, cumulative_influence3 = self.initialization_step_joint_influence()
+        self.cumulative_influences = [cumulative_influence1, cumulative_influence2, cumulative_influence3]
         if self.verbose:
             print(self.cumulative_influences[0], self.cumulative_influences[1], self.cumulative_influences[2])
 
@@ -91,12 +91,12 @@ class GreedyBudgetAllocation(object):
         # While the sum of a budget is not equal to the maximum budget, continues the incrementation. Then returns the optimal value
         while not sum(budget) == self.budget_total:
             # Increments the budget of the 3 social with the maximum increase multiplied by the price weight
-            argument_to_increment = np.argmax([(self.cumulative_influence1[budget[0] + 1][1] -
-                                                self.cumulative_influence1[budget[0]][1]) * weights[0],
-                                               (self.cumulative_influence2[budget[1] + 1][1] -
-                                                self.cumulative_influence2[budget[1]][1]) * weights[1],
-                                               (self.cumulative_influence3[budget[2] + 1][1] -
-                                                self.cumulative_influence3[budget[2]][1]) * weights[2]])
+            argument_to_increment = np.argmax([(self.cumulative_influences[0][budget[0] + 1][1] -
+                                                self.cumulative_influences[0][budget[0]][1]) * weights[0],
+                                               (self.cumulative_influences[1][budget[1] + 1][1] -
+                                                self.cumulative_influences[1][budget[1]][1]) * weights[1],
+                                               (self.cumulative_influences[2][budget[2] + 1][1] -
+                                                self.cumulative_influences[2][budget[2]][1]) * weights[2]])
             budget[argument_to_increment] += 1
 
             # If sum(budget) == self.budget_total the algorithm is done and you don't need to compute the next step
@@ -109,15 +109,14 @@ class GreedyBudgetAllocation(object):
                     resume_seeds.append(self.cumulative_influences[argument_to_increment][i][0])
 
                 # Computes the next step to use in the next iteration
-                # TODO: substitute step_fit with its parallel version
                 best_node, influence = self.social_list[argument_to_increment].step_fit(self.mc_simulations,
                                                                                         self.n_steps_montecarlo,
                                                                                         resume_seeds=resume_seeds)
                 self.cumulative_influences[argument_to_increment][budget[argument_to_increment] + 1] = [best_node, influence]
 
         # Computes the final joint influence
-        joint_influence = self.cumulative_influence1[budget[0]][1] + self.cumulative_influence2[budget[1]][1] + \
-                          self.cumulative_influence3[budget[2]][1]
+        joint_influence = self.cumulative_influences[0][budget[0]][1] + self.cumulative_influences[1][budget[1]][1] + \
+                          self.cumulative_influences[2][budget[2]][1]
 
         if self.verbose:
             print("Optimal budget: ", budget, "Optimal joint influence: ", joint_influence)
