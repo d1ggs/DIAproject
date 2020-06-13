@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 from typing import List,Dict, Any
-from pathlib import Path
+import os
 
-def plot_approx_error(result_simulations : Dict[int, float], infl_max_mc : float, plot_name : str):
+def plot_approx_error(result_simulations : Dict[int, float], infl_max_mc : float,dir_name :str ,plot_name : str):
     """
     This function plots the approximation error as the parameters of the algorithms vary for every specific network. 
     The parameter is the number of monte_carlo_simulations
@@ -23,6 +23,7 @@ def plot_approx_error(result_simulations : Dict[int, float], infl_max_mc : float
     
     infl_y = [y-infl_max_mc for y in infl_y]
     
+    plt.figure()
     # plotting the points  
     plt.plot(sim_x, infl_y) 
     
@@ -36,5 +37,5 @@ def plot_approx_error(result_simulations : Dict[int, float], infl_max_mc : float
     
     # function to show the plot 
     plt.show() 
-
-    plt.savefig(Path('./social_influence/plots/'+plot_name+'.png'))
+    os.makedirs(dir_name, exist_ok=True)
+    plt.savefig(os.path.join(dir_name, plot_name+'.png'))

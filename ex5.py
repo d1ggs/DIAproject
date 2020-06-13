@@ -16,7 +16,7 @@ from pricing.environments import StationaryEnvironment
 from pricing.learners.UCBLearner import UCBLearner
 from pricing.learners.ts_learner import TSLearner
 from pricing.const import *
-from social_influence.const import ROOT_PROJECT_PATH, MATRIX_PATH, FEATURE_MAX
+from social_influence.const import FEATURE_MAX, FEATURE_PARAM
 from social_influence.helper import Helper
 from social_influence.social_setup import SocialNetwork
 from social_influence.mc_sampling import MonteCarloSampling
@@ -29,10 +29,10 @@ TOTAL_BUDGET = 15
 MAX_PROPAGATION_STEPS = 10
 
 SOCIAL_NAMES = ["gplus", "facebook", "twitter"]
-PARAMETERS = np.array(
-    [[0.1, 0.3, 0.2, 0.2, 0.2],
-     [0.4, 0.1, 0.2, 0.2, 0.1],
-     [0.5, 0.1, 0.1, 0.1, 0.2]])  # parameters for each social
+# PARAMETERS = np.array(
+#     [[0.1, 0.3, 0.2, 0.2, 0.2],
+#      [0.4, 0.1, 0.2, 0.2, 0.1],
+#      [0.5, 0.1, 0.1, 0.1, 0.2]])  # parameters for each social
 
 if __name__ == "__main__":
 
@@ -55,7 +55,7 @@ if __name__ == "__main__":
         helper = Helper(social_network + "_combined")
         dataset = helper.read_dataset(social_network + "_fixed")
 
-        social = SocialNetwork(dataset, PARAMETERS[product_index], FEATURE_MAX, max_nodes=MAX_NODES)
+        social = SocialNetwork(dataset, FEATURE_PARAM[product_index], FEATURE_MAX, max_nodes=MAX_NODES)
         prob_matrix = social.get_matrix().copy()
         n_nodes = prob_matrix.shape[0]
 

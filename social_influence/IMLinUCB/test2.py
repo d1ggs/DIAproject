@@ -8,7 +8,7 @@ import pandas as pd
 import seaborn as sns
 
 from social_influence.social_setup import SocialNetwork
-from social_influence.const import FEATURE_MAX
+from social_influence.const import FEATURE_MAX, FEATURE_PARAM
 
 budget = 2
 n_steps = 2
@@ -16,12 +16,12 @@ n_nodes = 30
 n_features = 5
 T = 70
 n_experiment = 10
-parameters = np.asarray(
-        ((0.1, 0.3, 0.2, 0.2, 0.2), (0.3, 0.1, 0.2, 0.2, 0.2), (0.5, 0.1, 0.1, 0.1, 0.2)))  # parameters for each social
+# parameters = np.asarray(
+#         ((0.1, 0.3, 0.2, 0.2, 0.2), (0.3, 0.1, 0.2, 0.2, 0.2), (0.5, 0.1, 0.1, 0.1, 0.2)))  # parameters for each social
 
 helper = helper.Helper()
 twitter = helper.read_dataset("twitter_fixed")
-social_network = SocialNetwork(twitter, parameters[2], FEATURE_MAX, max_nodes=n_nodes)
+social_network = SocialNetwork(twitter, FEATURE_PARAM[2], FEATURE_MAX, max_nodes=n_nodes)
 
 # prob_matrix, features_edge_matrix, n_edges = create_dataset2(n_nodes, n_features, parameters)
 prob_matrix = social_network.get_matrix()

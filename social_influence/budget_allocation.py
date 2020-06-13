@@ -59,9 +59,6 @@ class GreedyBudgetAllocation(object):
             best_node2, influence2 = self.social_list[i].step_fit(self.mc_simulations, self.n_steps_montecarlo, resume_seeds=[best_node1])
             results[i].append((best_node2, influence2))
 
-        if self.verbose:
-            print(results)
-
         # Returns the dictionary containing the tuples
         results_dict1, results_dict2, results_dict3 = self.dictionary_creation(results[0]),\
                                                       self.dictionary_creation(results[1]), self.dictionary_creation(results[2])
@@ -82,9 +79,6 @@ class GreedyBudgetAllocation(object):
 
         # Instantiate a np array of ones (1,1,1), to impose 1 to be the minimum budget of a social network
         budget = [1, 1, 1]
-
-        if weights is None:
-            weights = [1, 1, 1]
 
         # While the sum of a budget is not equal to the maximum budget, continues the incrementation. Then returns the optimal value
         while not sum(budget) == self.budget_total:
@@ -180,7 +174,7 @@ class CumulativeBudgetAllocation(object):
     def initialization_step_joint_influence(self):
         """
         Initialization of the algorithm.
-        Pre-computes social influence for the first 2 steps for each social and returns a dictionary containing the tuples
+        Pre-computes social influence for each social at maximum budget and returns a dictionary containing the tuples (best_node at step i, influence at step i)
         """
         if self.verbose:
             print("Pre-computing social influence")
@@ -188,10 +182,8 @@ class CumulativeBudgetAllocation(object):
         results = [[], [], []]
         # Calculates first two steps of influence for each social
         for i in range(3):
-            results[i] = self.social_list[i].cumulative_parallel_fit(self.budget_total,self.mc_simulations, self.n_steps_montecarlo)
+            results[i] = self.social_list[i].cumulative_parallel_fit(self.budget_total-2,self.mc_simulations, self.n_steps_montecarlo)
 
-        if self.verbose:
-            print(results)
 
         # Returns the dictionary containing the tuples
         results_dict1, results_dict2, results_dict3 = self.dictionary_creation(results[0]),\
@@ -209,9 +201,6 @@ class CumulativeBudgetAllocation(object):
 
         # Instantiate a np array of ones (1,1,1), to impose 1 to be the minimum budget of a social network
         budget = [1, 1, 1]
-
-        if weights is None:
-            weights = [1, 1, 1]
 
         # While the sum of a budget is not equal to the maximum budget, continues the incrementation. Then returns the optimal value
         while not sum(budget) == self.budget_total:

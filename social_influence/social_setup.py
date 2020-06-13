@@ -5,9 +5,6 @@ import pandas as pd
 import os
 import math
 
-from social_influence.const import ROOT_PROJECT_PATH, MATRIX_PATH
-
-MAX_NODES = 300
 
 
 class SocialNetwork:
@@ -37,8 +34,8 @@ class SocialNetwork:
     def probability_matrix(self):
         max_node = self.social_edges.max()
         if self.max_nodes > 0:
-            max_node = self.max_nodes
-            print("Reducing dataset matrix to {} x {} nodes".format(self.max_nodes, self.max_nodes))
+            max_node = min([self.max_nodes, max_node])
+            print("Reducing dataset matrix to {} x {} nodes".format(max_node, max_node))
 
         matrix = np.zeros((max_node, max_node))
 
@@ -51,7 +48,6 @@ class SocialNetwork:
                 features = self.features[i]
                 matrix[node_a, node_b] = self.compute_activation_prob(features)
 
-        ##np.save(os.path.join(ROOT_PROJECT_PATH, MATRIX_PATH),matrix)
         return matrix
 
     def get_matrix(self):
@@ -61,16 +57,20 @@ class SocialNetwork:
         return self.matrix.shape[0]
 
     def get_edge_features_matrix(self):
-        n_edges = self.social_edges.shape[0]
+        max_node = self.social_edges.max()
+        if self.max_nodes > 0:
+            max_node = min([self.max_nodes, max_node])
+            print("Reducing dataset matrix to {} x {} nodes".format(max_node, max_node))
+
         feature_size = self.features.shape[1]
-        matrix = np.zeros(shape=(self.max_nodes, self.max_nodes, feature_size))
+        matrix = np.zeros(shape=(max_node, max_node, feature_size))
 
         for i in range(self.social_edges.shape[0]):
             node_a = self.social_edges[i][0]
             node_b = self.social_edges[i][1]
 
             # Write the activation probability only if the nodes are in range
-            if node_a < self.max_nodes and node_b < self.max_nodes:
+            if node_a < max_node and node_b < max_node:
                 matrix[node_a, node_b] = self.features[i]
 
         return matrix
