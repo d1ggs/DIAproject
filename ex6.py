@@ -21,7 +21,7 @@ from social_influence.helper import Helper
 from social_influence.social_setup import SocialNetwork
 from social_influence.mc_sampling import MonteCarloSampling
 from social_influence.influence_maximisation import GreedyLearner
-from social_influence.budget_allocation import GreedyBudgetAllocation
+from social_influence.budget_allocation import CumulativeBudgetAllocation
 
 # Social influence constants
 MAX_NODES = 300
@@ -75,7 +75,7 @@ if __name__ == "__main__":
 
     print("\nPrecomputing social influence for maximum budget...")
 
-    budget_allocator = GreedyBudgetAllocation(social_networks[0], social_networks[1], social_networks[2], TOTAL_BUDGET, monte_carlo_simulations, n_steps_max)
+    budget_allocator = CumulativeBudgetAllocation(social_networks[0], social_networks[1], social_networks[2], TOTAL_BUDGET, monte_carlo_simulations, n_steps_max)
 
     print("\nPerforming experiments...")
 
