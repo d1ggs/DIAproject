@@ -1,9 +1,10 @@
-from social_influence.influence_maximisation import *
-from social_influence.mc_sampling import *
+from social_influence.influence_maximisation import GreedyLearner
+
+import numpy as np
 
 
 class IMLinUCBLearner():
-    def __init__(self, n_features, feature_matrix_edges, budget, n_steps):
+    def __init__(self, n_features, feature_matrix_edges, budget,n_nodes, mc_sim, n_steps):
         """
         
         :param n_features:
@@ -18,8 +19,9 @@ class IMLinUCBLearner():
         self.sigma = 1
         self.c = 2
         self.budget = budget
+        self.mc_sim = mc_sim
         self.n_steps = n_steps
-        self.n_nodes = feature_matrix_edges.shape[0]
+        self.n_nodes = n_nodes
 
     def project_matrix(self, matrix):
         """
@@ -53,7 +55,7 @@ class IMLinUCBLearner():
         UCB_matrix = self.project_matrix(UCB_matrix)
       #  print(UCB_matrix)
         oracolo = GreedyLearner(UCB_matrix, self.n_nodes)
-        pulled_arm, _ = oracolo.fit(self.budget, 10, self.n_steps)
+        pulled_arm, _ = oracolo.parallel_fit(self.budget, self.mc_sim, self.n_steps)
         return pulled_arm
 
     def update_observations(self, reward, activated_edges, seen_edges):

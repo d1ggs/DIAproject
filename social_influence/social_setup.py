@@ -26,12 +26,12 @@ class SocialNetwork:
 
         self.matrix = self.probability_matrix()
 
-    def compute_activation_prob(self, features):
+    def compute_activation_prob(self, features) -> float:
         out = np.dot(self.parameters, features)  # dot product
         prob = out / self.feature_max  # divide by the maximum value of a feature
         return prob
 
-    def probability_matrix(self):
+    def probability_matrix(self) -> np.ndarray:
         max_node = self.social_edges.max()
         if self.max_nodes > 0:
             max_node = min([self.max_nodes, max_node])
@@ -50,13 +50,13 @@ class SocialNetwork:
 
         return matrix
 
-    def get_matrix(self):
+    def get_matrix(self) -> np.ndarray:
         return self.matrix
 
-    def get_n_nodes(self):
+    def get_n_nodes(self) -> int:
         return self.matrix.shape[0]
 
-    def get_edge_features_matrix(self):
+    def get_edge_features_matrix(self) -> np.ndarray:
         max_node = self.social_edges.max()
         if self.max_nodes > 0:
             max_node = min([self.max_nodes, max_node])
@@ -75,5 +75,5 @@ class SocialNetwork:
 
         return matrix
 
-    def get_edge_count(self):
+    def get_edge_count(self) -> int:
         return self.social_edges.shape[0]

@@ -131,7 +131,7 @@ class GreedyLearner(SingleInfluenceLearner):
             #best_marginal_increase = 0
             step_influence = 0
 
-            for n in range(self.n_nodes):
+            for n in tqdm(range(self.n_nodes)):
                 if best_seeds[n] == 0:
                     # computer marginal increase
                     seeds = np.copy(best_seeds)
@@ -147,8 +147,6 @@ class GreedyLearner(SingleInfluenceLearner):
                         best_node = n
                         #best_marginal_increase = marginal_increase
                         step_influence = influence
-                if n % 100 == 0:
-                    print("Analysing node: %d of %d" % (n, self.n_nodes))
 
             best_seeds[best_node] = 1
             max_influence = step_influence

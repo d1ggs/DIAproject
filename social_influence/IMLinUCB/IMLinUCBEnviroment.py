@@ -1,11 +1,9 @@
 import numpy as np
-from social_influence.IMLinUCB.create_dataset import *
-from social_influence.influence_maximisation import *
-from social_influence.mc_sampling import *
+from social_influence.influence_maximisation import GreedyLearner
 
 
 class IMLinUCBEnviroment():
-    def __init__(self, prob_matrix,budget,n_steps):
+    def __init__(self, prob_matrix,budget,mc_sim,n_steps):
         """
 
         :param prob_matrix:
@@ -16,6 +14,7 @@ class IMLinUCBEnviroment():
         self.n_nodes = prob_matrix.shape[0]
         self.budget = budget
         self.n_steps = n_steps
+        self.mc_sim = mc_sim
 
     def simulate_episode(self, seeds,n_steps):
         """
@@ -72,7 +71,7 @@ class IMLinUCBEnviroment():
         """
         greedy_learner = GreedyLearner(self.prob_matrix, self.n_nodes)
         if parallel:
-            _, best_reward = greedy_learner.parallel_fit(self.budget, 5000, self.n_steps)
+            _, best_reward = greedy_learner.parallel_fit(self.budget, self.mc_sim, self.n_steps)
         else:
-            _, best_reward = greedy_learner.fit(self.budget, 5000, self.n_steps)
+            _, best_reward = greedy_learner.fit(self.budget, self.mc_sim, self.n_steps)
         return best_reward

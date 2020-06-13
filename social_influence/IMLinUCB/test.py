@@ -1,5 +1,5 @@
-from social_influence.IMLinUCB.IMLinUCBEnviroment import *
-from social_influence.IMLinUCB.IMLinUCBLearner import *
+from social_influence.IMLinUCB.IMLinUCBEnviroment import IMLinUCBEnviroment
+from social_influence.IMLinUCB.IMLinUCBLearner import IMLinUCBLearner
 from social_influence.IMLinUCB.create_dataset import *
 import matplotlib.pyplot as plt
 
