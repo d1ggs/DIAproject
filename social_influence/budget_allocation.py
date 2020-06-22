@@ -3,7 +3,7 @@ from social_influence.influence_maximisation import GreedyLearner
 
 class GreedyBudgetAllocation(object):
 
-    def __init__(self, social1, social2, social3, budget_total,  mc_simulations, n_steps_montecarlo, verbose = False):
+    def __init__(self, social1, social2, social3, budget_total,  mc_simulations, n_steps_montecarlo, verbose=False):
 
         """
         In the main we need to pass 3 social media objects through the main
@@ -17,7 +17,8 @@ class GreedyBudgetAllocation(object):
 
         self.verbose = verbose
 
-        print(social1.get_matrix().shape, social1.get_n_nodes())
+        if verbose:
+            print(social1.get_matrix().shape, social1.get_n_nodes())
         social1_learner = GreedyLearner(social1.get_matrix(), social1.get_n_nodes())
         social2_learner = GreedyLearner(social2.get_matrix(), social2.get_n_nodes())
         social3_learner = GreedyLearner(social3.get_matrix(), social3.get_n_nodes())
@@ -121,7 +122,8 @@ class GreedyBudgetAllocation(object):
                  1: seeds2,
                  2: seeds3}
 
-        #print(seeds)
+        if self.verbose:
+            print(seeds)
 
         return budget, joint_influence, seeds
 

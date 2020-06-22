@@ -24,7 +24,7 @@ from social_influence.influence_maximisation import GreedyLearner
 from social_influence.budget_allocation import CumulativeBudgetAllocation
 
 # Social influence constants
-MAX_NODES = 300
+MAX_NODES = 100
 TOTAL_BUDGET = 15
 MAX_PROPAGATION_STEPS = 10
 
@@ -169,7 +169,7 @@ if __name__ == "__main__":
 
         plt.figure()
         df = pd.DataFrame({"agent": labels, "regret": results, "timestep": timesteps, "experiment_id": indexes})
-        print(df["regret"])
+        # print(df["regret"])
         sns.lineplot(x="timestep", y="regret", data=df, hue="agent")
         plt.title(social_network + " - product " + str(product_index + 1) + " : mean regret over time")
         plt.savefig("ex_5_" + social_network + ".png")
