@@ -3,7 +3,7 @@ from social_influence.influence_maximisation import GreedyLearner
 
 
 class IMLinUCBEnviroment():
-    def __init__(self, prob_matrix,budget,mc_sim,n_steps):
+    def __init__(self, prob_matrix, budget, mc_sim, n_steps):
         """
 
         :param prob_matrix:
@@ -16,7 +16,7 @@ class IMLinUCBEnviroment():
         self.n_steps = n_steps
         self.mc_sim = mc_sim
 
-    def simulate_episode(self, seeds,n_steps):
+    def simulate_episode(self, seeds, n_steps):
         """
         Identico a simulate episode della lezione però memorizzo sia gli edge attivati, sia quelli visti
         :param seeds:
@@ -32,7 +32,7 @@ class IMLinUCBEnviroment():
         all_activated_edges = np.zeros(probability_matrix.shape)
         all_seen_edges = np.zeros(probability_matrix.shape)
 
-        while (t < n_steps and np.sum(newly_active_nodes) > 0):
+        while t < n_steps and np.sum(newly_active_nodes) > 0:
             p = (probability_matrix.T * active_nodes).T
             activated_edges = p > np.random.rand(p.shape[0], p.shape[1])
             all_activated_edges += activated_edges
@@ -58,9 +58,9 @@ class IMLinUCBEnviroment():
         @return seen_edges: matrice binaria con (i,j)=1 se l'edge corrispondente è stato visto
 
         """
-        history, activated_edges, seen_edges = self.simulate_episode(seed,self.n_steps)
-        n_activated_nodes = np.sum(history)
-        #non voglio che in uno stesso round nodo venga attivato più volte
+        history, activated_edges, seen_edges = self.simulate_episode(seed, self.n_steps)
+        n_activated_nodes = np.sum(history[1:])
+        # non voglio che in uno stesso round nodo venga attivato più volte
         activated_edges[activated_edges > 0] = 1
         return n_activated_nodes, activated_edges, seen_edges
 
@@ -71,7 +71,8 @@ class IMLinUCBEnviroment():
         """
         greedy_learner = GreedyLearner(self.prob_matrix, self.n_nodes)
         if parallel:
-            _, best_reward = greedy_learner.parallel_fit(self.budget, self.mc_sim, self.n_steps)
+            seed, best_reward = greedy_learner.parallel_fit(self.budget, self.mc_sim, self.n_steps)
         else:
-            _, best_reward = greedy_learner.fit(self.budget, self.mc_sim, self.n_steps)
-        return best_reward
+            seed, best_reward = greedy_learner.fit(self.budget, self.mc_sim, self.n_steps)
+
+        return int(best_reward), seed

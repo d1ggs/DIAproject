@@ -54,7 +54,7 @@ class GreedyLearner(SingleInfluenceLearner):
 
         return node, influence
 
-    def parallel_fit(self, budget: int, montecarlo_simulations: int, n_steps_max: int):
+    def parallel_fit(self, budget: int, montecarlo_simulations: int, n_steps_max: int, verbose=True):
         """
         Greedy influence maximization algorithm. Execution in parallel
         
@@ -74,7 +74,8 @@ class GreedyLearner(SingleInfluenceLearner):
         max_influence = 0
         best_seeds = np.zeros(self.n_nodes)
         
-        print("Start Greedy Influence Maximisation with budget: %d, mc_simulations: %d, n_steps_max: %d" % (budget, montecarlo_simulations, n_steps_max))
+        if verbose:
+            print("Start Greedy Influence Maximisation with budget: %d, mc_simulations: %d, n_steps_max: %d" % (budget, montecarlo_simulations, n_steps_max))
         for i in range(budget):
             #best_marginal_increase = 0 
             step_influence = 0
@@ -88,7 +89,7 @@ class GreedyLearner(SingleInfluenceLearner):
                                                 args=(n, best_seeds, montecarlo_simulations, n_steps_max))
                         results_async.append(r_async)
 
-                for r in tqdm(results_async):
+                for r in tqdm(results_async) if verbose else results_async:
                     results.append(r.get())
 
                 pool.close()
@@ -97,7 +98,7 @@ class GreedyLearner(SingleInfluenceLearner):
                 n, influence = res
                 #marginal_increase = influence - step_influence
                 
-                if influence >= step_influence:
+                if influence > step_influence or (influence == step_influence and np.random.random() > 0.5):
                     best_node = n
                     #best_marginal_increase = marginal_increase
                     step_influence = influence
@@ -105,12 +106,14 @@ class GreedyLearner(SingleInfluenceLearner):
 
             best_seeds[best_node] = 1
             max_influence = step_influence
-            print("Node with best marginal increase at step %d: %d" % (i + 1, best_node))
+            if verbose:
+                print("Node with best marginal increase at step %d: %d" % (i + 1, best_node))
 
-        print('-'*100)
+        if verbose:
+            print('-'*100)
         return best_seeds, max_influence
 
-    def fit(self, budget: int, montecarlo_simulations: int, n_steps_max: int):
+    def fit(self, budget: int, montecarlo_simulations: int, n_steps_max: int, verbose=True):
         """
         Greedy influence maximization algorithm. Serial execution
         
@@ -131,7 +134,7 @@ class GreedyLearner(SingleInfluenceLearner):
             #best_marginal_increase = 0
             step_influence = 0
 
-            for n in tqdm(range(self.n_nodes)):
+            for n in tqdm(range(self.n_nodes)) if verbose else range(self.n_nodes):
                 if best_seeds[n] == 0:
                     # computer marginal increase
                     seeds = np.copy(best_seeds)
@@ -143,14 +146,17 @@ class GreedyLearner(SingleInfluenceLearner):
 
                     #marginal_increase = influence - step_influence
 
-                    if influence >= step_influence:
+                    if influence > step_influence or (influence == step_influence and np.random.random() > 0.5):
                         best_node = n
                         #best_marginal_increase = marginal_increase
                         step_influence = influence
 
+
+
             best_seeds[best_node] = 1
             max_influence = step_influence
-            print("Node with best marginal increase at step %d: %d" % (i + 1, best_node))
+            if verbose:
+                print("Node with best marginal increase at step %d: %d" % (i + 1, best_node))
 
         return best_seeds, max_influence
 
@@ -188,7 +194,7 @@ class GreedyLearner(SingleInfluenceLearner):
 
                     #marginal_increase = influence - step_influence
 
-                    if influence >= step_influence:
+                    if influence > step_influence or (influence == step_influence and np.random.random() > 0.5):
                         best_node = n
                         #best_marginal_increase = marginal_increase
                         step_influence = influence
@@ -247,7 +253,7 @@ class GreedyLearner(SingleInfluenceLearner):
                     n, influence = res
                     #marginal_increase = influence - step_influence
                     
-                    if influence >= step_influence:
+                    if influence > step_influence or (influence == step_influence and np.random.random() > 0.5):
                         best_node = n
                         #best_marginal_increase = marginal_increase
                         step_influence = influence
@@ -305,7 +311,7 @@ class GreedyLearner(SingleInfluenceLearner):
                 n, influence = res
                 #marginal_increase = influence - step_influence
                 
-                if influence >= step_influence:
+                if influence > step_influence or (influence == step_influence and np.random.random() > 0.5):
                     best_node = n
                     #best_marginal_increase = marginal_increase
                     step_influence = influence
