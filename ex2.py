@@ -26,6 +26,7 @@ if __name__ == "__main__":
     parser.add_argument("--max_n", default=1000, type=int, help="Specify max number of nodes")
     args = parser.parse_args()
 
+    #TODO compute mc simulations as R = O ( (1 / eps^2) * log (|seeds| * log (1/ delta)) as explained in the slides
     monte_carlo_simulations = args.mc
     n_steps_max = args.steps
     budget = args.budget
