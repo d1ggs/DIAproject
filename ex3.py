@@ -46,25 +46,27 @@ if __name__ == "__main__":
     start = time.time()
 
     if not args.plot:
-        budget_allocator = GreedyBudgetAllocation(social1, social2, social3, budget, monte_carlo_simulations, n_steps_max, verbose=True)
+        budget_allocator = GreedyBudgetAllocation(social1, social2, social3, budget, monte_carlo_simulations,
+                                                  n_steps_max, verbose=True)
 
         print("Start Budget Allocation..")
         budget, joint_influence, _ = budget_allocator.joint_influence_maximization()
-    
+
     else:
-    # # Plot the approximation error as the parameters of the algorithms vary for every specific network.
+        # Plot the approximation error as the parameters of the algorithms vary for every specific network.
         plot_name = "cumulative_appr_error"
         results = {}
-        for i in range(1,monte_carlo_simulations+1):
-            budget_allocator = GreedyBudgetAllocation(social1, social2, social3, budget, mc_simulations=i, n_steps_montecarlo=n_steps_max)
+        for i in range(1, monte_carlo_simulations + 1):
+            budget_allocator = GreedyBudgetAllocation(social1, social2, social3, budget, mc_simulations=i,
+                                                      n_steps_montecarlo=n_steps_max)
             budget_allocation, joint_influence, _ = budget_allocator.joint_influence_maximization()
             results[i] = joint_influence
 
             if i == monte_carlo_simulations:
                 infl_max_mc = joint_influence
-        
+
         dir_name = "plots/social_influence/nod%d_bud%d_mc%d" % (max_node, budget, monte_carlo_simulations)
-        plot_approx_error(results,infl_max_mc ,dir_name=dir_name,plot_name=plot_name)
+        plot_approx_error(results, infl_max_mc, dir_name=dir_name, plot_name=plot_name)
 
     # print("Best Seeds: [%s] Result: %.2f" % (','.join(str(int(n)) for n in seeds_max_mc), infl_max_mc))
     end = time.time()
@@ -72,4 +74,3 @@ if __name__ == "__main__":
     minutes, seconds = divmod(rem, 60)
     print("Training completed")
     print("Time Elapsed: %d:%d:%d" % (hours, minutes, seconds))
-

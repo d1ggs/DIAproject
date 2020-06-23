@@ -16,7 +16,7 @@ class IMLinUCBEnviroment():
         self.n_steps = n_steps
         self.mc_sim = mc_sim
 
-    def simulate_episode(self, seeds, n_steps):
+    def simulate_episode(self, seeds, n_steps, random_seed):
         """
         Identico a simulate episode della lezione però memorizzo sia gli edge attivati, sia quelli visti
         :param seeds:
@@ -34,6 +34,7 @@ class IMLinUCBEnviroment():
 
         while t < n_steps and np.sum(newly_active_nodes) > 0:
             p = (probability_matrix.T * active_nodes).T
+            np.random.seed(random_seed)
             activated_edges = p > np.random.rand(p.shape[0], p.shape[1])
             all_activated_edges += activated_edges
             probability_matrix = probability_matrix * ((p != 0) == activated_edges)
@@ -50,19 +51,41 @@ class IMLinUCBEnviroment():
                 all_seen_edges[i, :] = 1
         return history, all_activated_edges, all_seen_edges
 
-    def round(self, seed):
+    def round(self, seed, n_simulations=1, random_seed=42):
         """
-        @param seed: seed dato dal learner
-        @return n_activated_nodes: reward
-        @return activated_edges: matrice binaria con (i,j)=1 se l'edge corrispondente è stato attivato
-        @return seen_edges: matrice binaria con (i,j)=1 se l'edge corrispondente è stato visto
+        :param seed: seed dato dal learner
+        :param n_simulations: numero di simulazioni con il seed per fare la media campionaria dell'influenza
+        :param random_seed: parametro per inizializzare il random di numpy per poter ripetere le attivazioni
+        :return n_activated_nodes: reward
+        :return activated_edges: matrice binaria con (i,j)=1 se l'edge corrispondente è stato attivato
+        :return seen_edges: matrice binaria con (i,j)=1 se l'edge corrispondente è stato visto
+        """
+        n_activated_nodes = []
+        activated_edges_sum = None
+        seen_edges_sum = None
+        for _ in range(n_simulations):
+            history, activated_edges, seen_edges = self.simulate_episode(seed, self.n_steps, random_seed)
+            n_activated_nodes.append(np.sum(history[1:]))
+            # non voglio che in uno stesso round nodo venga attivato più volte
+            activated_edges[activated_edges > 0] = 1
 
-        """
-        history, activated_edges, seen_edges = self.simulate_episode(seed, self.n_steps)
-        n_activated_nodes = np.sum(history[1:])
-        # non voglio che in uno stesso round nodo venga attivato più volte
-        activated_edges[activated_edges > 0] = 1
-        return n_activated_nodes, activated_edges, seen_edges
+            # if activated_edges_sum is not None:
+            #     activated_edges_sum += activated_edges
+            # else:
+            #     activated_edges_sum = activated_edges
+            #
+            # if seen_edges_sum is not None:
+            #     seen_edges_sum += seen_edges
+            # else:
+            #     seen_edges_sum = seen_edges
+
+
+        # activated_edges_sum[activated_edges_sum > 0] = 1.0
+        # seen_edges_sum[seen_edges_sum > 0] = 1.0
+
+        # exit()
+
+        return np.mean(n_activated_nodes), activated_edges, seen_edges
 
     def opt(self, parallel=False):
         """
@@ -75,4 +98,4 @@ class IMLinUCBEnviroment():
         else:
             seed, best_reward = greedy_learner.fit(self.budget, self.mc_sim, self.n_steps)
 
-        return int(best_reward), seed
+        return best_reward, seed
