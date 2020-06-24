@@ -15,13 +15,13 @@ from social_influence.const import FEATURE_MAX, FEATURE_PARAM
 import numpy as np
 
 budget = 2
-mc_simulations_opt = 5
-mc_simulations = 5
+mc_simulations_opt = 10
+mc_simulations = 10
 n_steps = 2
-n_nodes = 30
+n_nodes = 100
 n_features = 5
-T = 400
-n_experiment = 1
+T = 100
+n_experiment = 3
 # parameters = np.asarray(
 #         ((0.1, 0.3, 0.2, 0.2, 0.2), (0.3, 0.1, 0.2, 0.2, 0.2), (0.5, 0.1, 0.1, 0.1, 0.2)))  # parameters for each social
 
@@ -39,6 +39,8 @@ regret_per_experiment = []
 
 env = IMLinUCBEnviroment(prob_matrix, budget, mc_simulations, n_steps)
 optimal_reward, best_seed = env.opt(parallel=True)
+optimal_reward -= budget
+optimal_reward = optimal_reward
 print("opt", optimal_reward)
 
 for exp in range(n_experiment):
@@ -53,7 +55,10 @@ for exp in range(n_experiment):
         # print(pulled_arm)
         # print(best_seed)
         # print("--------------------")
-        reward, edge_activation_matrix, seen_edges = env.round(pulled_arm)
+        rs = np.random.randint(1e6)
+        reward, edge_activation_matrix, seen_edges = env.round(pulled_arm, n_simulations=1, random_seed=rs)
+        optimal_reward, _, _ = env.round(best_seed, n_simulations=1, random_seed=rs)
+        # print(reward)
         # comparison = pulled_arm == best_seed
         # equal_arrays = comparison.all()
         # print(equal_arrays)
@@ -63,6 +68,9 @@ for exp in range(n_experiment):
         inst_regret = optimal_reward - reward
         # assert not (inst_regret < 0), "Negative regret"
         cumulative_regret += inst_regret
+        # print("algo:",reward)
+        # print("opt:", optimal_reward)
+        # print("----------")
         learner.update_observations(reward, edge_activation_matrix, seen_edges)
 
         regret_per_timestep.append(cumulative_regret)

@@ -22,11 +22,9 @@ class IMLinUCBLearner(object):
         self.collected_rewards = []
         self.feature_matrix_edges = feature_matrix_edges.copy()
         self.sigma = 1
-        # self.c = 2
         d = n_features
         D = 100000
         self.c = np.sqrt(d * np.log(1 + (n_nodes * n_iters)/d) + 2 * np.log(n_iters * (n_nodes + 1 - budget))) + D
-        #self.c = 1
         #self.c = 1
         self.budget = budget
         self.mc_sim = mc_sim
