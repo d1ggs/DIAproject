@@ -18,7 +18,7 @@ if __name__ == "__main__":
     parser.add_argument("--mc", default=3, type=int, help="Specify how many mc simulations")
     parser.add_argument("--steps", default=5, type=int, help="Specify how many steps per simulation")
     parser.add_argument("--budget", default=5, type=int, help="Specify budget")
-    parser.add_argument("--max_n", default=300, type=int, help="Specify max number of nodes")
+    parser.add_argument("--max_n", default=1000, type=int, help="Specify max number of nodes")
     args = parser.parse_args()
 
     monte_carlo_simulations = args.mc
@@ -40,8 +40,8 @@ if __name__ == "__main__":
     gplus = helper.read_dataset("gplus_fixed")
     social2 = SocialNetwork(gplus, FEATURE_PARAM[1], FEATURE_MAX, max_nodes=max_node)
 
-    twitter = helper.read_dataset("twitter_fixed")
-    social3 = SocialNetwork(twitter, FEATURE_PARAM[2], FEATURE_MAX, max_nodes=max_node)
+    wikipedia = helper.read_dataset("wikipedia_fixed")
+    social3 = SocialNetwork(wikipedia, FEATURE_PARAM[2], FEATURE_MAX, max_nodes=max_node)
 
     start = time.time()
 

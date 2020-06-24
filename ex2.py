@@ -15,7 +15,7 @@ if __name__ == "__main__":
     # Simulate Social Network
     parser = argparse.ArgumentParser()
     parser.add_argument("-fb", action='store_true', help="Select facebook dataset")
-    parser.add_argument("-t", action='store_true', help="Select twitter dataset")
+    parser.add_argument("-w", action='store_true', help="Select wikipedia dataset")
     parser.add_argument("-g", action='store_true', help="Select google dataset")
     parser.add_argument("--test", action='store_true', help="Use random data")
     parser.add_argument("--plot", action='store_true', help="Plot approximation error")
@@ -52,10 +52,10 @@ if __name__ == "__main__":
             dataset = helper.read_dataset("gplus_fixed")
             param = FEATURE_PARAM[1]
             plot_name = plot_name+"_gplus"
-        elif args.t:
-            dataset = helper.read_dataset("twitter_fixed")
+        elif args.w:
+            dataset = helper.read_dataset("wikipedia_fixed")
             param = FEATURE_PARAM[2]
-            plot_name = plot_name+"_twitter"
+            plot_name = plot_name+"_wikipedia"
         else:
             print("Error: specify which dataset to select. Rerun with --help for info")
             exit(-1)
