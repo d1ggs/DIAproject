@@ -13,14 +13,14 @@ from social_influence.LinUCB.InfluenceMaximizator import *
 from social_influence.LinUCB.LinUCBLearner import *
 from social_influence.LinUCB.LinUCBEnviroment import *
 
-n_nodes = 50
+n_nodes = 200
 c = 2
 n_features = 5
-T = 500
+T = 1000
 n_experiment = 10
-budget = 2
-n_steps = 2
-mc_simulations = 10
+budget = 5
+n_steps = 3
+mc_simulations = 100
 helper = helper.Helper()
 facebook = helper.read_dataset("gplus_fixed")
 social_network = SocialNetwork(facebook, FEATURE_PARAM[0], FEATURE_MAX, max_nodes=n_nodes)
@@ -49,7 +49,7 @@ opt = env.opt()
 
 
 plt.figure(0)
-plt.title("LinearUCB Influence Maximization\n")
+plt.title("LinearUCB\n")
 plt.ylabel("Regret")
 plt.xlabel("T")
 plt.plot(np.cumsum(np.mean(opt - reward_per_experiment, axis=0)), 'r')
