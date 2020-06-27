@@ -12,7 +12,7 @@ from tqdm import trange, tqdm
 import copy
 
 from pricing.conversion_rate import ProductConversionRate
-from pricing.environments import StationaryEnvironment
+from pricing.environments import StationaryEnvironment, NonStationaryEnvironment
 from pricing.learners.UCBLearner import UCBLearner
 from pricing.learners.ts_learner import TSLearner
 from pricing.const import *
@@ -29,7 +29,10 @@ TOTAL_BUDGET = 15
 MAX_PROPAGATION_STEPS = 10
 
 SOCIAL_NAMES = ["gplus", "facebook", "wikipedia"]
-
+# PARAMETERS = np.array(
+#     [[0.1, 0.3, 0.2, 0.2, 0.2],
+#      [0.4, 0.1, 0.2, 0.2, 0.1],
+#      [0.5, 0.1, 0.1, 0.1, 0.2]])  # parameters for each social
 
 if __name__ == "__main__":
 
@@ -72,6 +75,8 @@ if __name__ == "__main__":
 
     print("\nPrecomputing social influence for maximum budget...")
 
+
+    #TODO here instead of social networks matrices use matrix obtained from LinUCB
     budget_allocator = CumulativeBudgetAllocation(social_networks[0].get_matrix(), social_networks[1].get_matrix(), social_networks[2].get_matrix(), TOTAL_BUDGET, monte_carlo_simulations, n_steps_max)
 
     print("\nPerforming experiments...")
@@ -84,11 +89,12 @@ if __name__ == "__main__":
         product = products[i]
         product_id = product["product_id"]
         seasons = product["seasons"]
-        season_id = seasons[0]["season_id"]
-        y = seasons[0]["y_values"]
-        curve = ProductConversionRate(product_id, season_id, N_ARMS, y)
-        original_envs.append(StationaryEnvironment(prices=PRICES, curve=curve))
-
+        curves = []
+        for season in seasons:
+            y = season["y_values"]
+            season_id = season["season_id"]
+            curves.append(ProductConversionRate(product_id, season_id, N_ARMS, y))
+        original_envs.append(NonStationaryEnvironment(prices=PRICES, curves=curves, horizon=TIME_HORIZON))
         original_ts_learners.append(TSLearner(PRICES))
 
     for _ in trange(N_EXPERIMENTS):
@@ -104,7 +110,6 @@ if __name__ == "__main__":
 
         # ucb_learners.append(UCBLearner(PRICES))
         ts_learners = copy.deepcopy(original_ts_learners)
-
         for _ in range(TIME_HORIZON):
             weights = [ts_learners[i].get_last_best_price() for i in range(3)]
             budget, _, seeds = budget_allocator.joint_influence_maximization(weights=weights)

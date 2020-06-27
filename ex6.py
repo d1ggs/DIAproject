@@ -75,7 +75,7 @@ if __name__ == "__main__":
 
     print("\nPrecomputing social influence for maximum budget...")
 
-    budget_allocator = CumulativeBudgetAllocation(social_networks[0], social_networks[1], social_networks[2], TOTAL_BUDGET, monte_carlo_simulations, n_steps_max)
+    budget_allocator = CumulativeBudgetAllocation(social_networks[0].get_matrix(), social_networks[1].get_matrix(), social_networks[2].get_matrix(), TOTAL_BUDGET, monte_carlo_simulations, n_steps_max)
 
     print("\nPerforming experiments...")
 

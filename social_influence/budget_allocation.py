@@ -128,7 +128,7 @@ class GreedyBudgetAllocation(object):
 
 class CumulativeBudgetAllocation(object):
 
-    def __init__(self, social1, social2, social3, budget_total,  mc_simulations, n_steps_montecarlo, verbose = False):
+    def __init__(self, matrix1, matrix2, matrix3, budget_total,  mc_simulations, n_steps_montecarlo, verbose = False):
 
         """
         In the main we need to pass 3 social media objects through the main
@@ -142,10 +142,9 @@ class CumulativeBudgetAllocation(object):
 
         self.verbose = verbose
 
-        print(social1.get_matrix().shape, social1.get_n_nodes())
-        social1_learner = GreedyLearner(social1.get_matrix(), social1.get_n_nodes())
-        social2_learner = GreedyLearner(social2.get_matrix(), social2.get_n_nodes())
-        social3_learner = GreedyLearner(social3.get_matrix(), social3.get_n_nodes())
+        social1_learner = GreedyLearner(matrix1, matrix1.shape[0])
+        social2_learner = GreedyLearner(matrix2, matrix2.shape[0])
+        social3_learner = GreedyLearner(matrix3, matrix3.shape[0])
         self.social_list = [social1_learner, social2_learner, social3_learner]
         assert(budget_total >= 3)
         self.budget_total = budget_total
