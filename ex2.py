@@ -20,7 +20,7 @@ if __name__ == "__main__":
     parser.add_argument("--test", action='store_true', help="Use random data")
     parser.add_argument("--plot", action='store_true', help="Plot approximation error")
 
-    parser.add_argument("--mc", default=3, type=int, help="Specify how many mc simulations")
+    parser.add_argument("--mc", default=10, type=int, help="Specify how many mc simulations")
     parser.add_argument("--steps", default=5, type=int, help="Specify how many steps per simulation")
     parser.add_argument("--budget", default=5, type=int, help="Specify budget")
     parser.add_argument("--max_n", default=1000, type=int, help="Specify max number of nodes")
@@ -45,14 +45,17 @@ if __name__ == "__main__":
         plot_name = plot_name+"_random"
     else:
         if args.fb:
+            print("Facebook dataset")
             dataset = helper.read_dataset("facebook_fixed")
             param = FEATURE_PARAM[0]
             plot_name = plot_name+"_facebook"
         elif args.g:
+            print("Gplus dataset")
             dataset = helper.read_dataset("gplus_fixed")
             param = FEATURE_PARAM[1]
             plot_name = plot_name+"_gplus"
         elif args.w:
+            print("Wikipedia dataset")
             dataset = helper.read_dataset("wikipedia_fixed")
             param = FEATURE_PARAM[2]
             plot_name = plot_name+"_wikipedia"
@@ -76,7 +79,7 @@ if __name__ == "__main__":
         seeds_max_mc = []
         infl_max_mc = 0
         for i in range(1,monte_carlo_simulations+1):
-            seeds, influence = influence_learner.parallel_fit(budget, montecarlo_simulations=i, n_steps_max=n_steps_max)
+            seeds, influence = influence_learner.parallel_fit(budget, montecarlo_simulations=i, n_steps_max=n_steps_max, verbose=True)
             results[i] = influence
             print("MC sim: %d Best Seeds: [%s] Result: %.2f" % (i,','.join(str(int(n)) for n in seeds), influence))
             if i == monte_carlo_simulations:
