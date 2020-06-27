@@ -89,7 +89,7 @@ class GreedyLearner(SingleInfluenceLearner):
                                                 args=(n, best_seeds, montecarlo_simulations, n_steps_max))
                         results_async.append(r_async)
 
-                for r in tqdm(results_async) if verbose else results_async:
+                for r in results_async:
                     results.append(r.get())
 
                 pool.close()
