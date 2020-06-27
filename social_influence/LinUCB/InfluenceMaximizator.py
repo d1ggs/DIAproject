@@ -1,5 +1,3 @@
-
-import numpy as np
 import numpy as np
 from social_influence.influence_maximisation import GreedyLearner
 

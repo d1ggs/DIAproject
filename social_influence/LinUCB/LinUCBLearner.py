@@ -1,8 +1,8 @@
 import numpy as np
-
+from social_influence.influence_maximisation import GreedyLearner
 
 class LinUCBLearner():
-    def __init__(self, feature_matrix, c):
+    def __init__(self, feature_matrix, mc_simulations, n_steps, budget, c=2):
         self.feature_matrix = feature_matrix
         self.c = c
         self.n_nodes = self.feature_matrix.shape[0]
@@ -12,6 +12,13 @@ class LinUCBLearner():
         self.collected_rewards = []
         self.pulled_arms = []
         self.theta = []
+
+        self.theta = np.atleast_2d(np.zeros(self.feature_matrix.shape[2]))
+        self.n_experiment = 0
+        self.prob_matrix = np.zeros((self.feature_matrix.shape[0], self.feature_matrix.shape[0]))
+        self.budget = budget
+        self.mc_simulations = mc_simulations
+        self.n_steps = n_steps
 
     def compute_ucbs(self):
         self.theta = np.dot(np.linalg.inv(self.M), self.B)
@@ -37,3 +44,30 @@ class LinUCBLearner():
         pulled_edge_features = np.atleast_2d(self.feature_matrix[arm_index[0], arm_index[1]]).T
         self.M += np.dot(pulled_edge_features, pulled_edge_features.T)
         self.B += pulled_edge_features * reward
+
+#    def update_tetha(self,extimated_theta):
+#        self.theta += extimated_theta.T
+
+    def __calc_prob_matrix(self):
+        for i in range(self.feature_matrix.shape[0]):
+            for j in range(self.feature_matrix.shape[0]):
+                self.prob_matrix[i,j] = np.dot(self.feature_matrix[i,j,:],self.theta.T)
+
+    def get_prob_matrix(self):
+        self.__calc_prob_matrix()
+        return self.prob_matrix
+
+    def find_best_seeds(self, parallel = True):
+        self.__calc_prob_matrix()
+        greedy_learner = GreedyLearner(self.prob_matrix, self.feature_matrix.shape[0])
+        if parallel:
+            seed, reward = greedy_learner.parallel_fit(self.budget,self.mc_simulations,self.n_steps)
+        else:
+            seed, reward = greedy_learner.fit(self.budget, self.mc_simulations, self.n_steps)
+        return seed, reward
+
+    # def get_final_matrix(self,n_experiments):
+    #     final_theta = self.theta/self.n_experiment
+    #     for i in range(self.feature_matrix.shape[0]):
+    #         for j in range(self.feature_matrix.shape[0]):
+    #             self.prob_matrix[i,j] = np.dot(self.feature_matrix[i,j,:],final_theta.T)
