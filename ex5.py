@@ -28,14 +28,10 @@ MAX_NODES = 300
 TOTAL_BUDGET = 15
 MAX_PROPAGATION_STEPS = 10
 
-SOCIAL_NAMES = ["gplus", "facebook", "twitter"]
-# PARAMETERS = np.array(
-#     [[0.1, 0.3, 0.2, 0.2, 0.2],
-#      [0.4, 0.1, 0.2, 0.2, 0.1],
-#      [0.5, 0.1, 0.1, 0.1, 0.2]])  # parameters for each social
+SOCIAL_NAMES = ["gplus", "facebook", "wikipedia"]
+
 
 if __name__ == "__main__":
-
 
     # Simulate Social Network
     social_networks = []
@@ -52,7 +48,7 @@ if __name__ == "__main__":
 
     for social_network, product_index in zip(SOCIAL_NAMES, range(len(SOCIAL_NAMES))):
 
-        helper = Helper(social_network + "_combined")
+        helper = Helper()
         dataset = helper.read_dataset(social_network + "_fixed")
 
         social = SocialNetwork(dataset, FEATURE_PARAM[product_index], FEATURE_MAX, max_nodes=MAX_NODES)
@@ -75,7 +71,7 @@ if __name__ == "__main__":
 
     print("\nPrecomputing social influence for maximum budget...")
 
-    budget_allocator = CumulativeBudgetAllocation(social_networks[0], social_networks[1], social_networks[2], TOTAL_BUDGET, monte_carlo_simulations, n_steps_max)
+    budget_allocator = CumulativeBudgetAllocation(social_networks[0].get_matrix(), social_networks[1].get_matrix(), social_networks[2].get_matrix(), TOTAL_BUDGET, monte_carlo_simulations, n_steps_max)
 
     print("\nPerforming experiments...")
 
