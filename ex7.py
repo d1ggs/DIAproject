@@ -1,11 +1,8 @@
 import json
-from multiprocessing import pool, Pool
 
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import os
-import time
 import matplotlib.pyplot as plt
 
 from tqdm import trange, tqdm
@@ -13,20 +10,22 @@ import copy
 
 from pricing.conversion_rate import ProductConversionRate
 from pricing.environments import StationaryEnvironment, NonStationaryEnvironment
-from pricing.learners.UCBLearner import UCBLearner
 from pricing.learners.ts_learner import TSLearner
-from pricing.const import *
+from pricing.const import TIME_HORIZON, N_EXPERIMENTS, PRICES, N_ARMS
 from social_influence.const import FEATURE_MAX, FEATURE_PARAM
 from social_influence.helper import Helper
 from social_influence.social_setup import SocialNetwork
 from social_influence.mc_sampling import MonteCarloSampling
-from social_influence.influence_maximisation import GreedyLearner
-from social_influence.budget_allocation import CumulativeBudgetAllocation
+from social_influence.budget_allocation import StatelessBudgetAllocation
+
+from social_influence.LinUCB.InfluenceMaximizator import InfluenceMaximizator
+from social_influence.LinUCB.LinUCBLearner import LinUCBLearner
 
 # Social influence constants
-MAX_NODES = 300
+MAX_NODES = 30
 TOTAL_BUDGET = 15
 MAX_PROPAGATION_STEPS = 10
+N_EXPERIMENTS = 3
 
 SOCIAL_NAMES = ["gplus", "facebook", "wikipedia"]
 # PARAMETERS = np.array(
@@ -35,7 +34,6 @@ SOCIAL_NAMES = ["gplus", "facebook", "wikipedia"]
 #      [0.5, 0.1, 0.1, 0.1, 0.2]])  # parameters for each social
 
 if __name__ == "__main__":
-
 
     # Simulate Social Network
     social_networks = []
@@ -51,7 +49,6 @@ if __name__ == "__main__":
     print("Loading social networks and products...\n")
 
     for social_network, product_index in zip(SOCIAL_NAMES, range(len(SOCIAL_NAMES))):
-
         helper = Helper()
         dataset = helper.read_dataset(social_network + "_fixed")
 
@@ -75,9 +72,8 @@ if __name__ == "__main__":
 
     print("\nPrecomputing social influence for maximum budget...")
 
-
-    #TODO here instead of social networks matrices use matrix obtained from LinUCB
-    budget_allocator = CumulativeBudgetAllocation(social_networks[0].get_matrix(), social_networks[1].get_matrix(), social_networks[2].get_matrix(), TOTAL_BUDGET, monte_carlo_simulations, n_steps_max)
+    # TODO here instead of social networks matrices use matrix obtained from LinUCB
+    budget_allocator = StatelessBudgetAllocation(TOTAL_BUDGET, monte_carlo_simulations, MAX_PROPAGATION_STEPS)
 
     print("\nPerforming experiments...")
 
@@ -97,11 +93,10 @@ if __name__ == "__main__":
         original_envs.append(NonStationaryEnvironment(prices=PRICES, curves=curves, horizon=TIME_HORIZON))
         original_ts_learners.append(TSLearner(PRICES))
 
-    for _ in trange(N_EXPERIMENTS):
-        # ucb_learners = []
+    for _ in range(N_EXPERIMENTS):
+        matrix_learners = [LinUCBLearner(social_networks[i].get_edge_features_matrix(), monte_carlo_simulations, MAX_PROPAGATION_STEPS, TOTAL_BUDGET) for i in range(3)]
 
         cumulative_regret_ts = [0, 0, 0]
-        # cumulative_regret_ucb = [0, 0, 0]
 
         regrets_ts_per_timestep = [[], [], []]
         # regrets_ucb_per_timestep = [[], [], []]
@@ -110,15 +105,23 @@ if __name__ == "__main__":
 
         # ucb_learners.append(UCBLearner(PRICES))
         ts_learners = copy.deepcopy(original_ts_learners)
-        for _ in range(TIME_HORIZON):
+        for _ in trange(TIME_HORIZON):
             weights = [ts_learners[i].get_last_best_price() for i in range(3)]
-            budget, _, seeds = budget_allocator.joint_influence_maximization(weights=weights)
+            social_1 = matrix_learners[0].get_prob_matrix()
+            social_2 = matrix_learners[1].get_prob_matrix()
+            social_3 = matrix_learners[2].get_prob_matrix()
+
+            pulled_arms = [matrix_learners[i].pull_arm() for i in range(3)]
+
+            budget, _, seeds = budget_allocator.joint_influence_maximization(social_1, social_2, social_3, weights=weights)
 
             for i in range(3):
 
                 fixed_size_seeds = np.zeros(MAX_NODES)
                 fixed_size_seeds[seeds[i].astype(int)] = 1.0
-                seeds_vector = samplers[i].simulate_episode(fixed_size_seeds, MAX_PROPAGATION_STEPS)
+                seeds_vector, target_pulled = samplers[i].simulate_episode(fixed_size_seeds, MAX_PROPAGATION_STEPS, target_edge=pulled_arms[i])
+
+                matrix_learners[i].update_values(pulled_arms[i], int(target_pulled))
 
                 clicks = int(np.sum(seeds_vector[0] if seeds_vector.shape[0] == 1 else seeds_vector[1]))
 
@@ -174,4 +177,4 @@ if __name__ == "__main__":
         print(df["regret"])
         sns.lineplot(x="timestep", y="regret", data=df, hue="agent")
         plt.title(social_network + " - product " + str(product_index + 1) + " : mean regret over time")
-        plt.savefig("ex_5_" + social_network + ".png")
+        plt.savefig("ex_7_" + social_network + ".png")
