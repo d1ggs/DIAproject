@@ -65,10 +65,10 @@ class LinUCBLearner(object):
         self.__calc_prob_matrix()
         greedy_learner = GreedyLearner(self.prob_matrix, self.feature_matrix.shape[0])
         if parallel:
-            seed, reward = greedy_learner.parallel_fit(self.budget, self.mc_simulations, self.n_steps)
+            seed, reward = greedy_learner.parallel_fit(self.budget, self.mc_simulations, self.n_steps, verbose=False)
         else:
-            seed, reward = greedy_learner.fit(self.budget, self.mc_simulations, self.n_steps)
-        return seed, reward
+            seed, reward = greedy_learner.fit(self.budget, self.mc_simulations, self.n_steps, verbose=False)
+        return seed, reward - self.budget
 
     # def get_final_matrix(self,n_experiments):
     #     final_theta = self.theta/self.n_experiment

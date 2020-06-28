@@ -11,7 +11,7 @@ class InfluenceMaximizator():
         self.mc_simulations = mc_simulations
         self.n_steps = n_steps
 
-    def update_tetha(self,extimated_tetha):
+    def update_theta(self, extimated_tetha):
         self.theta += extimated_tetha.T
 
     def __calc_prob_matrix(self):

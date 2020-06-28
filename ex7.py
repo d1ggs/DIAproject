@@ -18,14 +18,13 @@ from social_influence.social_setup import SocialNetwork
 from social_influence.mc_sampling import MonteCarloSampling
 from social_influence.budget_allocation import StatelessBudgetAllocation
 
-from social_influence.LinUCB.InfluenceMaximizator import InfluenceMaximizator
 from social_influence.LinUCB.LinUCBLearner import LinUCBLearner
 
 # Social influence constants
-MAX_NODES = 30
-TOTAL_BUDGET = 15
-MAX_PROPAGATION_STEPS = 10
-N_EXPERIMENTS = 3
+MAX_NODES = 300
+TOTAL_BUDGET = 5
+MAX_PROPAGATION_STEPS = 5
+N_EXPERIMENTS = 10
 
 SOCIAL_NAMES = ["gplus", "facebook", "wikipedia"]
 # PARAMETERS = np.array(
@@ -178,3 +177,5 @@ if __name__ == "__main__":
         sns.lineplot(x="timestep", y="regret", data=df, hue="agent")
         plt.title(social_network + " - product " + str(product_index + 1) + " : mean regret over time")
         plt.savefig("ex_7_" + social_network + ".png")
+        plt.show()
+
