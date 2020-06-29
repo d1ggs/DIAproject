@@ -23,7 +23,7 @@ from social_influence.LinUCB.LinUCBLearner import LinUCBLearner
 # Social influence constants
 MAX_NODES = 300
 TOTAL_BUDGET = 5
-MAX_PROPAGATION_STEPS = 5
+MAX_PROPAGATION_STEPS = 2
 N_EXPERIMENTS = 10
 
 SOCIAL_NAMES = ["gplus", "facebook", "wikipedia"]
@@ -161,6 +161,8 @@ if __name__ == "__main__":
     timesteps = []
     indexes = []
 
+    savedir = "plots/ex7/"
+
     for social_network, product_index, regret in zip(SOCIAL_NAMES, range(3), ts_regrets_per_experiment):
 
         # Prepare the data structures for the dataframe
@@ -176,6 +178,6 @@ if __name__ == "__main__":
         print(df["regret"])
         sns.lineplot(x="timestep", y="regret", data=df, hue="agent")
         plt.title(social_network + " - product " + str(product_index + 1) + " : mean regret over time")
-        plt.savefig("ex_7_" + social_network + ".png")
+        plt.savefig(savedir + "ex_7_{}_stationary_{}n_{}bdg_{}prop_{}ex.png".format(social_network, MAX_NODES, TOTAL_BUDGET, MAX_PROPAGATION_STEPS, N_EXPERIMENTS))
         plt.show()
 
