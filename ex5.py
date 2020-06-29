@@ -33,7 +33,6 @@ SOCIAL_NAMES = ["gplus", "facebook", "wikipedia"]
 
 if __name__ == "__main__":
 
-
     # Simulate Social Network
     social_networks = []
     samplers = []

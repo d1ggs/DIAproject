@@ -9,12 +9,13 @@ class MonteCarloSampling(object):
     edge_activations : matrix of (n_nodes, n_nodes) composed by edge probabilities
     """
 
-    def __init__(self, edge_activations : np.ndarray):
+    def __init__(self, edge_activations: np.ndarray):
         super().__init__()
         self.edge_activations = edge_activations.copy()
         self.n_nodes = edge_activations.shape[0]
 
-    def simulate_episode(self, seeds : np.ndarray, n_steps_max : int):
+
+    def simulate_episode(self, seeds: np.ndarray, n_steps_max: int, target_edge=None):
         """
         Simulates an episode where at each time step certain nodes activates.
 
@@ -33,12 +34,18 @@ class MonteCarloSampling(object):
         newly_active_nodes = active_nodes.copy()  # node active in the current timestep
         t = 0
 
+        activated_target = False
+
         # Loop until either the time is exhausted or there is no new active node
         while (t < n_steps_max and np.sum(newly_active_nodes) > 0):
             p = (prob_matrix.T * active_nodes).T  # This is the probability matrix but only with active nodes
 
             # Find edges exceeding an activation probability threshold and activate them
             activated_edges = p > np.random.rand(p.shape[0], p.shape[1])
+
+            if target_edge is not None and activated_edges[target_edge[0], target_edge[1]]:
+                activated_target = True
+
             # Remove from the probability matrix the probability values related to the previously activated nodes
             prob_matrix = prob_matrix * ((p != 0) == activated_edges)
 
@@ -49,9 +56,12 @@ class MonteCarloSampling(object):
 
             history = np.concatenate((history, [newly_active_nodes]), axis=0)
             t += 1
-        return history
+        if target_edge is None:
+            return history
+        else:
+            return history, activated_target
 
-    def mc_sampling(self, seeds : np.ndarray, n_episodes : int, n_steps_max : int):
+    def mc_sampling(self, seeds: np.ndarray, n_episodes: int, n_steps_max: int):
         """
         Implements Monte Carlo Sampling, from the edge probabilities and a given set of seeds, it returns 
         the node activation functions at each simulation
