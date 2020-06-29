@@ -302,7 +302,7 @@ class GreedyLearner(SingleInfluenceLearner):
                                                 args=(n, best_seeds, montecarlo_simulations, n_steps_max))
                         results_async.append(r_async)
 
-                for r in tqdm(results_async):
+                for r in results_async:
                     results.append(r.get())
 
                 pool.close()
@@ -319,7 +319,6 @@ class GreedyLearner(SingleInfluenceLearner):
 
             best_seeds[best_node] = 1
 
-            print('-'*100)
             return (best_node,step_influence)
 
 

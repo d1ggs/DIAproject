@@ -7,22 +7,24 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 from social_influence.influence_maximisation import GreedyLearner
+from social_influence.mc_sampling import MonteCarloSampling
 from social_influence.social_setup import SocialNetwork
 from social_influence.const import FEATURE_MAX, FEATURE_PARAM
-from social_influence.LinUCB.InfluenceMaximizator import *
 from social_influence.LinUCB.LinUCBLearner import *
 from social_influence.LinUCB.LinUCBEnviroment import *
 
-n_nodes = 200
+n_nodes = 100
 c = 2
 n_features = 5
-T = 1000
+T = 200
 n_experiment = 10
 budget = 5
 n_steps = 3
-mc_simulations = 100
+mc_simulations = 5
+social_name = "gplus_fixed"
+
 helper = helper.Helper()
-facebook = helper.read_dataset("gplus_fixed")
+facebook = helper.read_dataset(social_name)
 social_network = SocialNetwork(facebook, FEATURE_PARAM[0], FEATURE_MAX, max_nodes=n_nodes)
 
 prob_matrix = social_network.get_matrix()
@@ -33,33 +35,46 @@ reward_per_experiment = []
 regret_per_experiment = []
 tetha = []
 env = LinUCBEnviroment(prob_matrix)
-maximizator = InfluenceMaximizator(features_edge_matrix, n_experiment, budget, mc_simulations, n_steps)
+sampler = MonteCarloSampling(social_network.get_matrix())
+
+opt, opt_seeds = env.opt(budget, mc_simulations, n_steps, parallel=True)
 
 for e in trange(n_experiment):
-    learner = LinUCBLearner(features_edge_matrix,c)
+    learner = LinUCBLearner(features_edge_matrix, mc_simulations, n_steps, budget)
+    regret_per_timestep = []
+    cumulative_regret = 0
+
     for t in range(T):
         pulled_arm = learner.pull_arm()
-        reward = env.round(pulled_arm)
-        learner.update_values(pulled_arm, reward)
-    maximizator.update_tetha(learner.get_theta())
-    reward_per_experiment.append(learner.collected_rewards)
+        # reward = env.round(pulled_arm)
+        learner_seeds, _ = learner.find_best_seeds(parallel=True)
 
+        history_vector = sampler.simulate_episode(opt_seeds, n_steps)
+        opt_reward = np.sum(history_vector) - budget
 
-opt = env.opt()
+        history_vector, target_activated = sampler.simulate_episode(learner_seeds, n_steps, target_edge=pulled_arm)
+        learner_reward = np.sum(history_vector) - budget
+        learner.update_values(pulled_arm, int(target_activated))
 
+        inst_regret = opt_reward-learner_reward
 
-plt.figure(0)
-plt.title("LinearUCB\n")
-plt.ylabel("Regret")
-plt.xlabel("T")
-plt.plot(np.cumsum(np.mean(opt - reward_per_experiment, axis=0)), 'r')
-plt.savefig("Pippo.png")
-plt.plot(opt, 'g')
+        cumulative_regret += inst_regret
+        regret_per_timestep.append(cumulative_regret)
+
+    regret_per_experiment.append(regret_per_timestep)
+
+timesteps = []
+results = []
+indexes = []
+
+for experiment, index in zip(regret_per_experiment, range(len(regret_per_experiment))):
+    timesteps.extend(np.arange(len(experiment)))
+    results.extend(experiment)
+    indexes.extend([index] * len(experiment))
+
+plt.figure()
+df = pd.DataFrame({"regret": results, "timestep": timesteps, "experiment_id": indexes})
+sns.lineplot(x="timestep", y="regret", data=df)
+plt.title(social_name + ": mean regret over time")
+plt.savefig("testLinUCB_" + social_name + ".png")
 plt.show()
-
-best_seed_approx,approx_reward = maximizator.find_best_seeds()
-print("Best seed with approximate matrix is: {}. Reward: {}\n".format(best_seed_approx,approx_reward))
-
-greedy_learner = GreedyLearner(prob_matrix, n_nodes)
-best_seed, reward = greedy_learner.parallel_fit(budget, mc_simulations, n_steps)
-print("Best seed with true matrix is: {}. Reward: {}\n".format(best_seed,reward))
