@@ -23,11 +23,11 @@ from social_influence.mc_sampling import MonteCarloSampling
 from social_influence.budget_allocation import CumulativeBudgetAllocation
 
 # Social influence constants
-MAX_NODES = 1000
-TOTAL_BUDGET = 10
+MAX_NODES = 300
+TOTAL_BUDGET = 5
 MAX_PROPAGATION_STEPS = 3
 N_EXPERIMENTS = 50
-TIME_HORIZON = 60
+TIME_HORIZON = 120
 
 SOCIAL_NAMES = ["gplus", "email", "wikipedia"]
 
@@ -94,6 +94,29 @@ if __name__ == "__main__":
         original_ts_learners.append(TSLearner(PRICES))
         original_ucb_learners.append(UCBLearner(PRICES, constant=0.5))
 
+    opt_weights = []
+    best_arms = []
+    for i in range(3):
+        weight, best_arm = original_envs[i].opt_reward()
+        opt_weights.append(weight)
+        best_arms.append(best_arm)
+
+    budget, average_joint_influence, best_seeds = budget_allocator.joint_influence_maximization(weights=opt_weights, split_joint_influence=True)
+
+    opt_clicks = [int(round(average_joint_influence[i])) for i in range(3)]
+
+    # best_performance = []
+    #
+    # for i in range(3):
+    #     best_performance = average_joint_influence[i] * weights[i]
+
+    for i in range(3):
+        fixed_size_seeds = np.zeros(MAX_NODES)
+        fixed_size_seeds[best_seeds[i].astype(int)] = 1.0
+        seeds_vector = samplers[i].simulate_episode(fixed_size_seeds, MAX_PROPAGATION_STEPS)
+
+        learner_clicks = int(np.sum(seeds_vector[0] if seeds_vector.shape[0] == 1 else seeds_vector[1]))
+
     for _ in trange(N_EXPERIMENTS):
 
         cumulative_regret_ts = [0, 0, 0]
@@ -109,36 +132,62 @@ if __name__ == "__main__":
 
         for _ in range(TIME_HORIZON):
             weights = [ts_learners[i].get_last_best_price() for i in range(3)]
-            budget, _, seeds = budget_allocator.joint_influence_maximization(weights=weights)
+            budget, joint_influence, seeds = budget_allocator.joint_influence_maximization(weights=weights, split_joint_influence=True)
 
             for i in range(3):
 
-                fixed_size_seeds = np.zeros(MAX_NODES)
-                fixed_size_seeds[seeds[i].astype(int)] = 1.0
-                seeds_vector = samplers[i].simulate_episode(fixed_size_seeds, MAX_PROPAGATION_STEPS)
+                # random_seed = int(round(time.time()))
+                #
+                # fixed_size_seeds = np.zeros(MAX_NODES)
+                # fixed_size_seeds[seeds[i].astype(int)] = 1.0
+                # seeds_vector = samplers[i].simulate_episode(fixed_size_seeds, MAX_PROPAGATION_STEPS, random_seed=random_seed)
+                #
+                # learner_clicks = int(np.sum(seeds_vector[0] if seeds_vector.shape[0] == 1 else seeds_vector[1]))
+                #
+                # fixed_size_seeds = np.zeros(MAX_NODES)
+                # fixed_size_seeds[best_seeds[i].astype(int)] = 1.0
+                # seeds_vector = samplers[i].simulate_episode(fixed_size_seeds, MAX_PROPAGATION_STEPS,
+                #                                             random_seed=random_seed)
 
-                clicks = int(np.sum(seeds_vector[0] if seeds_vector.shape[0] == 1 else seeds_vector[1]))
+                # opt_clicks = int(np.sum(seeds_vector[0] if seeds_vector.shape[0] == 1 else seeds_vector[1]))
+
+
+
+                opt_clairvoyant = opt_clicks[i] * opt_weights[i]
+
+                learner_clicks = int(round(joint_influence[i]))
 
                 # Bandit pricing
+                reward_ucb = 0
+                reward_ts = 0
+                reward_clairvoyant = 0
 
                 # Choose a price for each user and compute reward
-                for _ in range(clicks):
+                for _ in range(learner_clicks):
                     #UCB learner
                     pulled_arm = ucb_learners[i].pull_arm()
                     reward = envs[i].round(pulled_arm)
                     ucb_learners[i].update(pulled_arm, reward)
 
-
-                    instantaneous_regret = envs[i].get_inst_regret(pulled_arm)
-                    cumulative_regret_ucb[i] += instantaneous_regret
+                    reward_ucb += reward * PRICES[pulled_arm]
+                    # instantaneous_regret = envs[i].get_inst_regret(pulled_arm)
+                    # cumulative_regret_ucb[i] += instantaneous_regret
 
                     # TS learner
                     pulled_arm = ts_learners[i].pull_arm()
                     reward = envs[i].round(pulled_arm)
                     ts_learners[i].update(pulled_arm, reward)
 
-                    instantaneous_regret = envs[i].get_inst_regret(pulled_arm)
-                    cumulative_regret_ts[i] += instantaneous_regret
+                    reward_ts += reward * PRICES[pulled_arm]
+
+                for _ in range(opt_clicks[i]):
+                    reward_clairvoyant += envs[i].round(best_arms[i]) * PRICES[best_arms[i]]
+
+                    # instantaneous_regret = envs[i].get_inst_regret(pulled_arm)
+                    # cumulative_regret_ts[i] += instantaneous_regret
+
+                cumulative_regret_ucb[i] += reward_clairvoyant - reward_ucb
+                cumulative_regret_ts[i] += reward_clairvoyant - reward_ts
 
                 regrets_ucb_per_timestep[i].append(cumulative_regret_ucb[i])
                 regrets_ts_per_timestep[i].append(cumulative_regret_ts[i])

@@ -54,7 +54,7 @@ class StationaryEnvironment(Environment):
         for i in range(self.n_arms):
             tmp.append(self.curve.get_probability(self.arms[i]) * self.prices[i])
 
-        return np.max(tmp)
+        return np.max(tmp), np.argmax(tmp)
 
     def plot(self):
         """Plot the conversion rate curve"""

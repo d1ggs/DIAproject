@@ -51,12 +51,12 @@ class SWUCBLearner(UCBLearner):
         start = max(0, self.t - self.tau + 1)
         return self.pulls[start:].count(arm)
 
-    def update_observations(self, pulled_arm: int, reward: float):
-        # Store the reward, putting 0s to those arms that were not pulled
-        for i in range(len(self.rewards_per_arm)):
-            self.rewards_per_arm[i].append(reward if i == pulled_arm else 0)
-
-        self.collected_rewards = np.append(self.collected_rewards, reward)
+    # def update_observations(self, pulled_arm: int, reward: float):
+    #     # Store the reward, putting 0s to those arms that were not pulled
+    #     for i in range(len(self.rewards_per_arm)):
+    #         self.rewards_per_arm[i].append(reward if i == pulled_arm else 0)
+    #
+    #     self.collected_rewards = np.append(self.collected_rewards, reward)
 
     def update(self, pulled_arm, reward):
         """Update the confidence bounds over the arms"""
@@ -65,11 +65,13 @@ class SWUCBLearner(UCBLearner):
         self.t += 1
 
         # Compute the empirical mean only for those pulls that are in the window
-        start = max(0, self.t - self.tau + 1)
-        r = self.mean_reward_per_arm[pulled_arm]
+        past_rewards = self.rewards_per_arm[pulled_arm]
+        start = max(0, len(past_rewards) - self.tau + 1)
+        past_rewards = past_rewards[start:]
+        r = np.mean(past_rewards)
 
         # Compute the uncertainty bound for the window
-        c = np.sqrt(self.alpha * np.log(min(self.t, self.tau))/self.pull_count[pulled_arm])
+        c = np.sqrt(self.alpha * np.log(min(self.t, self.tau))/len(past_rewards))
 
         # Update the overall bound
         self.upper_bounds[pulled_arm] = r + self.const * c * self.prices[pulled_arm]

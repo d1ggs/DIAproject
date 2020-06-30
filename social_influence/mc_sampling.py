@@ -15,7 +15,7 @@ class MonteCarloSampling(object):
         self.n_nodes = edge_activations.shape[0]
 
 
-    def simulate_episode(self, seeds: np.ndarray, n_steps_max: int, target_edge=None):
+    def simulate_episode(self, seeds: np.ndarray, n_steps_max: int, target_edge=None, random_seed=None):
         """
         Simulates an episode where at each time step certain nodes activates.
 
@@ -26,6 +26,10 @@ class MonteCarloSampling(object):
 
         n_steps_max : number of time steps inside one episode
         """
+
+        if random_seed:
+            np.random.seed(random_seed)
+
         prob_matrix = self.edge_activations.copy()
         assert (seeds.shape[0] == self.n_nodes)
         history = np.array([seeds])

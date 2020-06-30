@@ -189,7 +189,7 @@ class CumulativeBudgetAllocation(object):
                                                       self.dictionary_creation(results[1]), self.dictionary_creation(results[2])
         return results_dict1, results_dict2, results_dict3
 
-    def joint_influence_maximization(self, weights=None):
+    def joint_influence_maximization(self, weights=None, split_joint_influence=False):
         """"
 
         @return: array [budget1, budget2, budget3] with maximized joint social influence value respecting the constraint
@@ -217,8 +217,14 @@ class CumulativeBudgetAllocation(object):
         joint_influence = self.cumulative_influences[0][budget[0]][1] + self.cumulative_influences[1][budget[1]][1] + \
                           self.cumulative_influences[2][budget[2]][1]
 
+
         if self.verbose:
             print("Optimal budget: ", budget, "Optimal joint influence: ", joint_influence)
+
+        if split_joint_influence:
+            joint_influence = (self.cumulative_influences[0][budget[0]][1],
+                               self.cumulative_influences[1][budget[1]][1],
+                               self.cumulative_influences[2][budget[2]][1])
 
         # Builds a dictionary with the best seeds allocated with the best budget
         seeds1 = np.array([v[0] for k,v in self.cumulative_influences[0].items()])[:budget[0]]

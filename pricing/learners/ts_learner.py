@@ -13,6 +13,12 @@ class TSLearner(Learner):
         self.beta_parameters = np.ones((self.n_arms, 2))
 
     def pull_arm(self):
+        # Explore all arms once
+        if np.min(self.pull_count) == 0:
+            idx = np.argmin(self.pull_count)
+            return idx
+
+        # If the exploration has been done decide based on the samples weighed by the corresponding price
         samples = np.random.beta(self.beta_parameters[:, 0], self.beta_parameters[:, 1])
         vec = []
         for i in range(len(samples)):
@@ -46,5 +52,8 @@ class TSLearner(Learner):
 
         best_price_index = np.argmax(expected_reward).squeeze()
 
-        return self.prices[best_price_index]
+        beta = self.beta_parameters[best_price_index]
+        best_arm_conversion_prob = beta[0] / (beta[0] + beta[1])
+
+        return self.prices[best_price_index] * best_arm_conversion_prob
 
