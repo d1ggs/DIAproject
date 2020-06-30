@@ -31,3 +31,20 @@ class TSLearner(Learner):
         self.beta_parameters[pulled_arm, 0] += reward
         self.beta_parameters[pulled_arm, 1] += 1 - reward
 
+    def get_last_best_price(self):
+        """
+        The method computes the price which in expectation provides the largest value if proposed to all users
+        :return: the value of the best price
+        """
+
+        if self.t == 0:
+            return np.random.choice(self.prices)
+
+        expected_reward = np.copy(self.mean_reward_per_arm)
+        for i in range(len(self.mean_reward_per_arm)):
+            expected_reward[i] *= self.prices[i]
+
+        best_price_index = np.argmax(expected_reward).squeeze()
+
+        return self.prices[best_price_index]
+

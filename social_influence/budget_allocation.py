@@ -181,7 +181,7 @@ class CumulativeBudgetAllocation(object):
         results = [[], [], []]
         # Calculates first two steps of influence for each social
         for i in range(3):
-            results[i] = self.social_list[i].cumulative_parallel_fit(self.budget_total-2,self.mc_simulations, self.n_steps_montecarlo)
+            results[i] = self.social_list[i].cumulative_parallel_fit(self.budget_total-2, self.mc_simulations, self.n_steps_montecarlo)
 
 
         # Returns the dictionary containing the tuples

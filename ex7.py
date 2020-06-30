@@ -26,6 +26,8 @@ TOTAL_BUDGET = 5
 MAX_PROPAGATION_STEPS = 2
 N_EXPERIMENTS = 10
 
+savedir = "./plots/ex_7/"
+
 SOCIAL_NAMES = ["gplus", "facebook", "wikipedia"]
 # PARAMETERS = np.array(
 #     [[0.1, 0.3, 0.2, 0.2, 0.2],
@@ -160,8 +162,6 @@ if __name__ == "__main__":
     results = []
     timesteps = []
     indexes = []
-
-    savedir = "plots/ex7/"
 
     for social_network, product_index, regret in zip(SOCIAL_NAMES, range(3), ts_regrets_per_experiment):
 

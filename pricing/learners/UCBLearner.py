@@ -6,7 +6,6 @@ class UCBLearner(Learner):
     def __init__(self, prices: list, constant=1):
         n_arms = len(prices)
         super().__init__(prices)
-
         self.const = constant
         self.prices = prices
         self.upper_bounds = np.ones(n_arms) * np.inf
@@ -16,15 +15,22 @@ class UCBLearner(Learner):
         return idx
 
     def update(self, pulled_arm, reward):
-        self.update_observations(pulled_arm, reward)
+        self.update_observations(pulled_arm, reward*self.prices[pulled_arm])
         self.t += 1
-        x = np.mean(self.rewards_per_arm[pulled_arm])
-        self.upper_bounds[pulled_arm] = x + self.const * np.sqrt((2 * np.log(self.t)) / len(self.rewards_per_arm[pulled_arm]))
+        x = self.mean_reward_per_arm[pulled_arm]
+        sqrt_term = np.sqrt(2 * np.log(float(self.t)) / self.pull_count[pulled_arm])
+        # print(float(n_times_pulled))
+        # print(self.t)
+        # print(sqrt_term)
+        self.upper_bounds[pulled_arm] = x + self.const * sqrt_term * self.prices[pulled_arm]
+        # print(self.upper_bounds)
+        return self
+
 
 
 class SWUCBLearner(UCBLearner):
     """Class implementing SW-UCB# state-of-the-art bandit for non-stationary contexts"""
-    def __init__(self, horizon: int, prices: list, const: int, alpha=2, verbose=False):
+    def __init__(self, horizon: int, prices: list, const=1, alpha=2, verbose=False):
         """
         :param n_arms: number of conversion rates to be learned
         :param horizon: the number of samples that are to be considered when updating distributions
@@ -60,10 +66,10 @@ class SWUCBLearner(UCBLearner):
 
         # Compute the empirical mean only for those pulls that are in the window
         start = max(0, self.t - self.tau + 1)
-        r = np.sum(self.rewards_per_arm[pulled_arm][start:]) / self.get_times_pulled(pulled_arm)
+        r = self.mean_reward_per_arm[pulled_arm]
 
         # Compute the uncertainty bound for the window
-        c = np.sqrt(self.alpha * np.log(min(self.t, self.tau))/self.get_times_pulled(pulled_arm))
+        c = np.sqrt(self.alpha * np.log(min(self.t, self.tau))/self.pull_count[pulled_arm])
 
         # Update the overall bound
         self.upper_bounds[pulled_arm] = r + self.const * c * self.prices[pulled_arm]
