@@ -13,10 +13,11 @@ class GreedyBudgetAllocation(object):
         social2
         social3: three social network object to be passed
         budget_total
+        mc_simulations
+        n_steps_montecarlo
         """
 
         self.verbose = verbose
-
         print(social1.get_matrix().shape, social1.get_n_nodes())
         social1_learner = GreedyLearner(social1.get_matrix(), social1.get_n_nodes())
         social2_learner = GreedyLearner(social2.get_matrix(), social2.get_n_nodes())
@@ -122,6 +123,9 @@ class GreedyBudgetAllocation(object):
                  2: seeds3}
 
         #print(seeds)
+        if (self.verbose):
+            print("Email: ", cumulative_influences[0], "\n\n\nGPlus: ", cumulative_influences[1],
+                  "\n\n\nWikipedia: ", cumulative_influences[2])
 
         return budget, joint_influence, seeds
 
@@ -228,7 +232,7 @@ class CumulativeBudgetAllocation(object):
                  1: seeds2,
                  2: seeds3}
 
-        #print(seeds)
+
 
         return budget, joint_influence, seeds
 
