@@ -18,10 +18,10 @@ c = 2
 n_features = 5
 T = 200
 n_experiment = 10
-budget = 5
-n_steps = 3
+budget = 2
+n_steps = 2
 mc_simulations = 5
-social_name = "gplus_fixed"
+social_name = "email_fixed"
 
 helper = helper.Helper()
 facebook = helper.read_dataset(social_name)
@@ -40,7 +40,7 @@ sampler = MonteCarloSampling(social_network.get_matrix())
 opt, opt_seeds = env.opt(budget, mc_simulations, n_steps, parallel=True)
 
 for e in trange(n_experiment):
-    learner = LinUCBLearner(features_edge_matrix, mc_simulations, n_steps, budget)
+    learner = LinUCBLearner(features_edge_matrix, mc_simulations, n_steps, budget, 2)
     regret_per_timestep = []
     cumulative_regret = 0
 

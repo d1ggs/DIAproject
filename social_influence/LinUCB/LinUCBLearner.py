@@ -3,7 +3,7 @@ from social_influence.influence_maximisation import GreedyLearner
 
 
 class LinUCBLearner(object):
-    def __init__(self, feature_matrix, mc_simulations, n_steps, budget, c=2):
+    def __init__(self, feature_matrix, mc_simulations, n_steps, budget, c=1):
         self.feature_matrix = feature_matrix
         self.c = c
         self.n_nodes = self.feature_matrix.shape[0]
