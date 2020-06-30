@@ -11,6 +11,8 @@ class Learner(object):
         self.t = 0  # Represents the current round
         self.rewards_per_arm = [[] for i in range(self.n_arms)]  # Stores the collected rewards at each round for each arm
         self.collected_rewards = np.array([])
+        self.mean_reward_per_arm = np.zeros(self.n_arms)
+        self.pull_count = np.zeros(self.n_arms)
 
     def update_observations(self, pulled_arm: int, reward: float):
         """
@@ -22,23 +24,7 @@ class Learner(object):
 
         # Store the reward
         self.rewards_per_arm[pulled_arm].append(reward)
+        self.pull_count[pulled_arm] += 1
         self.collected_rewards = np.append(self.collected_rewards, reward)
-        self.t = 0
-
-    def get_last_best_price(self):
-        """
-        The method computes the price which in expectation provides the largest value if proposed to all users
-        :return: the value of the best price
-        """
-
-        if self.t == 0:
-            return np.random.choice(self.prices)
-
-        expected_reward = np.mean(self.rewards_per_arm, axis=1)
-        for i in range(len(expected_reward)):
-            expected_reward[i] *= self.prices[i]
-
-        best_price_index = np.argmax(expected_reward)
-
-        return self.prices[best_price_index]
+        self.mean_reward_per_arm[pulled_arm] += (reward - self.mean_reward_per_arm[pulled_arm]) / self.pull_count[pulled_arm]
 
