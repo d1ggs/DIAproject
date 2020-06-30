@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     print("Initializing Social Networks...")
 
-    facebook = helper.read_dataset("facebook_fixed", )
+    facebook = helper.read_dataset("email_fixed", )
     social1 = SocialNetwork(facebook, FEATURE_PARAM[0], FEATURE_MAX, max_nodes=max_node)
 
     gplus = helper.read_dataset("gplus_fixed")
@@ -58,7 +58,7 @@ if __name__ == "__main__":
         results = {}
         for i in range(1, monte_carlo_simulations + 1):
             budget_allocator = GreedyBudgetAllocation(social1, social2, social3, budget, mc_simulations=i,
-                                                      n_steps_montecarlo=n_steps_max)
+                                                      n_steps_montecarlo=n_steps_max, verbose=True)
             budget_allocation, joint_influence, _ = budget_allocator.joint_influence_maximization()
             results[i] = joint_influence
 
