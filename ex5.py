@@ -168,7 +168,6 @@ if __name__ == "__main__":
                     pulled_arm = ucb_learners[i].pull_arm()
                     reward = envs[i].round(pulled_arm)
                     ucb_learners[i].update(pulled_arm, reward)
-
                     reward_ucb += reward * PRICES[pulled_arm]
                     # instantaneous_regret = envs[i].get_inst_regret(pulled_arm)
                     # cumulative_regret_ucb[i] += instantaneous_regret
