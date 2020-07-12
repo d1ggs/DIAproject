@@ -54,7 +54,7 @@ budgets, opt, _ = budget_allocator.joint_influence_maximization()
 for i in range(n_social_networks):
     learners.append(LinUCBLearner(social_networks[i].get_edge_features_matrix(), monte_carlo_simulations,n_steps_max, budgets[i] , c[i]))
 
-regret_per_timestep = []
+
 regret_per_experiment = [[], [], []]
 reward_per_timestep = []
 
@@ -65,6 +65,7 @@ for e in range(N_EXPERIMENTS):
             LinUCBLearner(social_networks[i].get_edge_features_matrix(), monte_carlo_simulations, n_steps_max,
                           budgets[i], c[i]))
     cumulative_regret = 0
+    regret_per_timestep = []
     for t in range(T):
         for j in range(n_social_networks):
             pulled_arm = learners[i].pull_arm()
@@ -80,11 +81,12 @@ for e in range(N_EXPERIMENTS):
             mc_sampler = MonteCarloSampling(learners[i].get_prob_matrix())
             seed = np.zeros(MAX_NODES)
             seed[seeds[i]]=1
-            comb_reward += mc_sampler.simulate_episode(seed, n_steps_max)
+            comb_reward += np.sum(mc_sampler.simulate_episode(seed, n_steps_max))
             regret_per_timestep.append(opt-comb_reward)
     regret_per_experiment[i].append(regret_per_timestep)
 
 
+"""
 timesteps = []
 results = []
 indexes = []
@@ -99,4 +101,8 @@ df = pd.DataFrame({"regret": results, "timestep": timesteps, "experiment_id": in
 sns.lineplot(x="timestep", y="regret", data=df)
 plt.title("mean regret over time")
 plt.savefig("LinUCB" ".png")
+plt.show()
+"""
+plt.figure(0)
+plt.plot(np.cumsum(np.mean(regret_per_experiment,axis = 0)),'r')
 plt.show()
