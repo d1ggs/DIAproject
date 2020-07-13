@@ -42,7 +42,7 @@ if __name__ == "__main__":
 
         plot_name = plot_name+"_random"
     else:
-        if args.fb:
+        if args.m:
             print("Email dataset")
             dataset = helper.read_dataset("email_fixed")
             param = FEATURE_PARAM[0]
