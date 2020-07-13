@@ -34,8 +34,8 @@ if __name__ == "__main__":
 
     print("Initializing Social Networks...")
 
-    facebook = helper.read_dataset("email_fixed", )
-    social1 = SocialNetwork(facebook, FEATURE_PARAM[0], FEATURE_MAX, max_nodes=max_node)
+    email = helper.read_dataset("email_fixed", )
+    social1 = SocialNetwork(email, FEATURE_PARAM[0], FEATURE_MAX, max_nodes=max_node)
 
     gplus = helper.read_dataset("gplus_fixed")
     social2 = SocialNetwork(gplus, FEATURE_PARAM[1], FEATURE_MAX, max_nodes=max_node)

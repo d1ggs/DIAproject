@@ -10,8 +10,14 @@ import math
 class SocialNetwork:
     def __init__(self, dataset, parameters, feature_max, max_nodes=-1):
         """
-        Features in a Social Network are: Tag, Share, Like, Message, Comment
-        They are saved in self.features as a numpy array, ordered as written above (self.features[0] -> Tag...)
+        Given a social network dataset (create by Helper class) this class computes the edges activation function from the edge feature
+
+        Features in a Social Network could be number of Tag, Share, Like, Message, Comment...
+
+        :param dataset: tuple of edges, features returned by helper.read_dataset
+        :param parameters: each social network has a different set of weights for each feature
+        :param feature_max : max possible value that a feature can have, used to normalized the edge activation probabilities
+        :param max_nodes : max number of nodes for a social network
         """
 
         self.social_edges, self.features = dataset
@@ -27,12 +33,23 @@ class SocialNetwork:
         self.matrix = self.probability_matrix()
 
     def compute_activation_prob(self, features) -> float:
+        """
+        This function takes the features of a single edge and computes the activation probability of that edge
+
+        :param features: array of feature of a single edge
+        :return prob: edge activation probability
+        """
         out = np.dot(self.parameters, features)  # dot product
         prob = out / self.feature_max  # divide by the maximum value of a feature
         return prob
 
     def probability_matrix(self) -> np.ndarray:
+        """
+        Compute the edge activation matrix
+        """
         max_node = self.social_edges.max()
+
+        #restrict the matrix to self.max_nodes, if specified
         if self.max_nodes > 0:
             max_node = min([self.max_nodes, max_node])
             print("Reducing dataset matrix to {} x {} nodes".format(max_node, max_node))

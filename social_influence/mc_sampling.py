@@ -19,12 +19,14 @@ class MonteCarloSampling(object):
         """
         Simulates an episode where at each time step certain nodes activates.
 
-        Parameters
-        --------
 
-        seeds : initial set of seed nodes
+        :param seeds : initial set of seed nodes
 
-        n_steps_max : number of time steps inside one episode
+        :param n_steps_max : number of time steps inside one episode
+
+        :param target_edge
+
+        :param random_seed
         """
 
         if random_seed:
@@ -68,20 +70,19 @@ class MonteCarloSampling(object):
     def mc_sampling(self, seeds: np.ndarray, n_episodes: int, n_steps_max: int):
         """
         Implements Monte Carlo Sampling, from the edge probabilities and a given set of seeds, it returns 
-        the node activation functions at each simulation
+        the node activation probabilities 
 
-        Parameters
-        --------
-        seeds : set of seed nodes
 
-        n_episode : number of monte carlo simulation
+        :param seeds : set of seed nodes
 
-        n_steps_max : max number of steps in a episode
+        :param n_episode : number of monte carlo simulation
+
+        :param n_steps_max : max number of steps in a episode
+        :return estimated_prob : array with the activation probability for each node
         """
         z = np.zeros(self.n_nodes)
-        occurr_v_active = np.zeros(self.n_nodes)  # occurencies of each node in all episodes
+        occurr_v_active = np.zeros(self.n_nodes)  # occurrencies of each node in all episodes
 
-        # estimated_prob_for_simulation = [] #this array contains nodes activation probabilities, one simulation per row
         for n in range(1, n_episodes + 1):
             episode = self.simulate_episode(seeds=seeds, n_steps_max=n_steps_max)
             n_steps = episode.shape[0]
@@ -89,7 +90,6 @@ class MonteCarloSampling(object):
             for i in range(0, self.n_nodes):  # occurency of each node at each episode
                 if (len(np.argwhere(episode[:, i] == 1)) > 0):  # this checks if node i activated in this episode
                     z[i] += 1
-        estimated_prob = z / n_episodes  # estimated probabilities up to simulation n
-        # estimated_prob_for_simulation.append(estimated_prob)
+        estimated_prob = z / n_episodes
 
         return estimated_prob

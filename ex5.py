@@ -16,7 +16,7 @@ from pricing.environments import StationaryEnvironment
 from pricing.learners.UCBLearner import UCBLearner
 from pricing.learners.ts_learner import TSLearner
 from pricing.const import *
-from social_influence.const import FEATURE_MAX, FEATURE_PARAM
+from social_influence.const import FEATURE_MAX, FEATURE_PARAM, SOCIAL_NAMES
 from social_influence.helper import Helper
 from social_influence.social_setup import SocialNetwork
 from social_influence.mc_sampling import MonteCarloSampling
@@ -29,7 +29,6 @@ MAX_PROPAGATION_STEPS = 3
 N_EXPERIMENTS = 50
 TIME_HORIZON = 120
 
-SOCIAL_NAMES = ["gplus", "email", "wikipedia"]
 
 SAVEDIR="./plots/ex_5/"
 

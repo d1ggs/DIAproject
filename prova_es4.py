@@ -12,7 +12,7 @@ from pricing.conversion_rate import ProductConversionRate
 from pricing.environments import StationaryEnvironment, NonStationaryEnvironment
 from pricing.learners.ts_learner import TSLearner
 from pricing.const import TIME_HORIZON, N_EXPERIMENTS, PRICES, N_ARMS
-from social_influence.const import FEATURE_MAX, FEATURE_PARAM
+from social_influence.const import FEATURE_MAX, FEATURE_PARAM, SOCIAL_NAMES
 from social_influence.helper import Helper
 from social_influence.social_setup import SocialNetwork
 from social_influence.mc_sampling import MonteCarloSampling
@@ -25,7 +25,6 @@ MAX_PROPAGATION_STEPS = 2
 N_EXPERIMENTS = 5
 T = 20
 
-SOCIAL_NAMES = ["email", "gplus", "wikipedia"]
 
 n_social_networks = 3
 social_networks = []

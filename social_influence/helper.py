@@ -9,9 +9,9 @@ class Helper:
 
     def __init__(self, dataset: str = None):
         """
-        Data are loaded from Stanford's SNAP Facebook dataset, where the edges are undirected. This is not a problem,
-        since in FB it's reasonable to have undirected graphs, while for IG and Twitter we can assume this graph to be
-        directed from first node to the last.
+        This class converts the raw data of a social graph into a social network with edge features
+
+        :param dataset: this string indicates the dataset
 
         """
         if dataset is not None:

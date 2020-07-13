@@ -15,7 +15,7 @@ from pricing.learners.UCBLearner import SWUCBLearner
 from pricing.learners.ts_learner import TSLearner
 from pricing.learners.swts_learner import SWTSLearner
 from pricing.const import *
-from social_influence.const import FEATURE_MAX, FEATURE_PARAM
+from social_influence.const import FEATURE_MAX, FEATURE_PARAM, SOCIAL_NAMES
 from social_influence.helper import Helper
 from social_influence.social_setup import SocialNetwork
 from social_influence.mc_sampling import MonteCarloSampling
@@ -31,11 +31,6 @@ TIME_HORIZON = 360
 
 SAVEDIR = "./plots/ex_6/"
 
-SOCIAL_NAMES = ["gplus", "email", "wikipedia"]
-# PARAMETERS = np.array(
-#     [[0.1, 0.3, 0.2, 0.2, 0.2],
-#      [0.4, 0.1, 0.2, 0.2, 0.1],
-#      [0.5, 0.1, 0.1, 0.1, 0.2]])  # parameters for each social
 
 if __name__ == "__main__":
 
