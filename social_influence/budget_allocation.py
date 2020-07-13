@@ -6,15 +6,15 @@ class GreedyBudgetAllocation(object):
     def __init__(self, social1, social2, social3, budget_total,  mc_simulations, n_steps_montecarlo, verbose = False):
 
         """
-        In the main we need to pass 3 social media objects through the main
-        Parameters
-        ----------
-        social1
-        social2
-        social3: three social network object to be passed
-        budget_total
-        mc_simulations
-        n_steps_montecarlo
+        This class takes as input 3 different social network and it computes the best budget allocation over the 3 social network 
+        that maximizes the influence
+
+        :param social1: SocialNetwork class of 1st social
+        :param social2: SocialNetwork class of 2nd social
+        :param social3: SocialNetwork class of 3rd social
+        :param budget_total: budget to be allocated among the 3 social networks
+        :param mc_simulations: number of simulation of the monte carlo sampling
+        :param n_steps_montecarlo: max number of steps in a simulation
         """
 
         self.verbose = verbose
@@ -33,8 +33,8 @@ class GreedyBudgetAllocation(object):
     def dictionary_creation(influence_tuples):
         """
         Discards seed informations and converts it into a dictionary
-        @param influence_tuples: array of tuples (seed, influence)
-        @return: dictionary {budget: influence}
+        :param influence_tuples: array of tuples (seed, influence)
+        :return: dictionary {budget: influence}
         """
         dictionary = {}
         budget = 1
@@ -48,6 +48,8 @@ class GreedyBudgetAllocation(object):
         """
         Initialization of the algorithm.
         Pre-computes social influence for the first 2 steps for each social and returns a dictionary containing the tuples
+
+        
         """
         if self.verbose:
             print("Pre-computing social influence")
@@ -135,14 +137,20 @@ class CumulativeBudgetAllocation(object):
     def __init__(self, matrix1, matrix2, matrix3, budget_total,  mc_simulations, n_steps_montecarlo, verbose = False):
 
         """
-        In the main we need to pass 3 social media objects through the main
-        Parameters
-        ----------
-        social1
-        social2
-        social3: three social network object to be passed
-        budget_total
+        This class takes as input 3 different social network and it computes the best budget allocation over the 3 social network 
+        that maximizes the influence. 
+        In this case instead of performing a Greedy allocation it computes a priori the influence for each social network up to budget_total
+        It's more convenient than GreedyBudgetAllocation when joint_influence_maximization is called a high number of times (e.g during pricing) 
+        because it does the heavy computations only once
+
+        :param social1: SocialNetwork class of 1st social
+        :param social2: SocialNetwork class of 2nd social
+        :param social3: SocialNetwork class of 3rd social
+        :param budget_total: budget to be allocated among the 3 social networks
+        :param mc_simulations: number of simulation of the monte carlo sampling
+        :param n_steps_montecarlo: max number of steps in a simulation
         """
+        
 
         self.verbose = verbose
 
@@ -248,7 +256,14 @@ class StatelessBudgetAllocation(object):
     def __init__(self, budget_total,  mc_simulations, n_steps_montecarlo, verbose = False):
 
         """
-        New matrices at each time step
+        This class takes as input 3 different social network and it computes the best budget allocation over the 3 social network 
+        that maximizes the influence. 
+        This class doesn't allocate the social network matrices only one during init but used different matrices every time joint_influence_maximisation is called
+        Useful for ex7 where the edge activation matrices change at each time step
+
+        :param budget_total: budget to be allocated among the 3 social networks
+        :param mc_simulations: number of simulation of the monte carlo sampling
+        :param n_steps_montecarlo: max number of steps in a simulation
         """
 
         self.verbose = verbose
@@ -263,8 +278,8 @@ class StatelessBudgetAllocation(object):
     def dictionary_creation(influence_tuples):
         """
         Discards seed informations and converts it into a dictionary
-        @param influence_tuples: array of tuples (seed, influence)
-        @return: dictionary {budget: influence}
+        :param influence_tuples: array of tuples (seed, influence)
+        :return: dictionary {budget: influence}
         """
         dictionary = {}
         budget = 1
@@ -298,7 +313,7 @@ class StatelessBudgetAllocation(object):
     def joint_influence_maximization(self, matrix1, matrix2, matrix3,weights=None):
         """"
 
-        @return: array [budget1, budget2, budget3] with maximized joint social influence value respecting the constraint
+        :return: array [budget1, budget2, budget3] with maximized joint social influence value respecting the constraint
         """
         # Pre-compute social influence results and then transform it into a dictionary budget->influence
         social1_learner = GreedyLearner(matrix1, matrix1.shape[0])
