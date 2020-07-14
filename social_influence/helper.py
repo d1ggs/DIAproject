@@ -9,15 +9,15 @@ class Helper:
 
     def __init__(self, dataset: str = None):
         """
-        Data are loaded from Stanford's SNAP Facebook dataset, where the edges are undirected. This is not a problem,
-        since in FB it's reasonable to have undirected graphs, while for IG and Twitter we can assume this graph to be
-        directed from first node to the last.
+        This class converts the raw data of a social graph into a social network with edge features
+
+        :param dataset: this string indicates the dataset
 
         """
         if dataset is not None:
-            self.social_network_data = pd.read_csv(os.path.join(ROOT_PROJECT_PATH, "data/" + dataset + ".txt"), sep=" ", header=None)
+            self.social_network_data = pd.read_csv(os.path.join(ROOT_PROJECT_PATH, "data/" + dataset + ".txt"), sep="\s+", header=None)
 
-    def write_full_dataset(self, dataset):
+    def write_full_dataset(self, dataset: str):
 
         social_network = self.social_network_data.to_numpy()
         features = np.random.randint(FEATURE_MAX, size=(social_network.shape[0], 5))
@@ -66,9 +66,10 @@ class Helper:
 
 
 if __name__ == "__main__":
-    helper = Helper()
+    helper = Helper("wikipedia")
     # helper.read_dataset("gplus")
-    helper.convert_dataset("gplus")
-    helper.convert_dataset("facebook")
-    helper.convert_dataset("twitter")
+    # helper.convert_dataset("gplus")
+    # helper.convert_dataset("facebook")
+    # helper.convert_dataset("twitter")
+    helper.convert_dataset("wikipedia")
 

@@ -54,7 +54,7 @@ class StationaryEnvironment(Environment):
         for i in range(self.n_arms):
             tmp.append(self.curve.get_probability(self.arms[i]) * self.prices[i])
 
-        return np.max(tmp)
+        return np.max(tmp), np.argmax(tmp)
 
     def plot(self):
         """Plot the conversion rate curve"""
@@ -87,8 +87,9 @@ class NonStationaryEnvironment(Environment):
         self.horizon = horizon
 
         n_phases = len(self.curves)  # The number of phases is equal to the number of arms
-        self.phase_size = math.ceil(self.horizon / n_phases)# Assuming that all phases have the same size
+        self.phase_size = math.ceil(self.horizon / n_phases)  # Assuming that all phases have the same size
         self.current_phase = 0
+        self.start_new_phase = True
 
     def round(self, pulled_arm):
         """
@@ -97,20 +98,24 @@ class NonStationaryEnvironment(Environment):
         :param: pulled_arm: the index of the arm that has been pulled at this time step
         :return: the sampled reward for the pulled arm
         """
-
+        old_phase = self.current_phase
         cr = self.curves[self.current_phase].get_probability(pulled_arm)
+
         self.current_phase = math.floor(self.t / self.phase_size)
-        return np.random.binomial(1, cr)
+        if old_phase != self.current_phase:
+            self.start_new_phase = True
+        z = np.random.binomial(1, cr)
+        return z
 
     def forward_time(self):
         self.t += 1
+
 
     def opt_reward(self):
         tmp = []
         for i in range(self.n_arms):
             tmp.append(self.curves[self.current_phase].get_probability(self.arms[i]) * self.prices[i])
-
-        return np.max(tmp)
+        return np.max(tmp), np.argmax(tmp)
 
     def get_inst_regret(self, arm):
         return self.opt_reward() - self.prices[arm] * self.curves[self.current_phase].get_probability(arm)
@@ -131,3 +136,9 @@ class NonStationaryEnvironment(Environment):
 
         plt.legend(["phase " + str(i) for i in range(len(self.curves))])
         plt.show()
+
+    def new_phase(self):
+        if self.start_new_phase:
+            self.start_new_phase=False
+            return True
+        return False

@@ -12,11 +12,8 @@ class SingleInfluenceLearner(ABC):
     """
     Abstract Class that represent a Influence Maximisation learner for a single Social Network
 
-    Attributes
-    --------
-    prob_matrix : Edge Activation Probabilities matrix
-
-    n_nodes : number of nodes in the graph
+    :param prob_matrix : Edge Activation Probabilities matrix
+    :param n_nodes : number of nodes in the graph
 
     """
 
@@ -35,15 +32,14 @@ class GreedyLearner(SingleInfluenceLearner):
         """
         Function that runs in a single thread. Used only for parallel_fit
 
-        Parameters
-        -----------
-        node : node added to the seeds at this step to compute influence
 
-        best_seeds : array of seeds computed at previous steps of the Greedy Algorithm
+        :param node : node added to the seeds at this step to compute influence
 
-        mc_sim : montecarlo_simulation : number of MonteCarlo Simulations
+        :param best_seeds : array of seeds computed at previous steps of the Greedy Algorithm
 
-        n_steps_max : max number of steps in a simulation
+        :param mc_sim : montecarlo_simulation : number of MonteCarlo Simulations
+
+        :param n_steps_max : max number of steps in a simulation
         """
         sampler = MonteCarloSampling(self.prob_matrix)
         seeds = np.copy(best_seeds)
@@ -54,7 +50,7 @@ class GreedyLearner(SingleInfluenceLearner):
 
         return node, influence
 
-    def parallel_fit(self, budget: int, montecarlo_simulations: int, n_steps_max: int, verbose=False):
+    def parallel_fit(self, budget: int, montecarlo_simulations: int, n_steps_max: int, verbose=True):
         """
         Greedy influence maximization algorithm. Execution in parallel
         
@@ -64,11 +60,11 @@ class GreedyLearner(SingleInfluenceLearner):
 
         Parameters
         ---------
-        budget : budget for this social network
+        :param budget : budget for this social network
 
-        montecarlo_simulation : number of MonteCarlo Simulations
+        :param montecarlo_simulation : number of MonteCarlo Simulations
 
-        n_steps_max : max number of steps in a simulation
+        :param n_steps_max : max number of steps in a simulation
         """
 
         max_influence = 0
@@ -77,7 +73,6 @@ class GreedyLearner(SingleInfluenceLearner):
         if verbose:
             print("Start Greedy Influence Maximisation with budget: %d, mc_simulations: %d, n_steps_max: %d" % (budget, montecarlo_simulations, n_steps_max))
         for i in range(budget):
-            #best_marginal_increase = 0 
             step_influence = 0
 
             results_async = []
@@ -96,34 +91,31 @@ class GreedyLearner(SingleInfluenceLearner):
 
             for res in results:
                 n, influence = res
-                #marginal_increase = influence - step_influence
                 
-                if influence >= step_influence:
+                if influence > step_influence or (influence == step_influence and np.random.random() > 0.5):
                     best_node = n
-                    #best_marginal_increase = marginal_increase
                     step_influence = influence
 
 
             best_seeds[best_node] = 1
             max_influence = step_influence
             if verbose:
-                print("Node with best marginal increase at step %d: %d" % (i + 1, best_node))
+                print("Node with best marginal increase at step %d: %d. Step_Influence: %f" % (i + 1, best_node, step_influence))
 
         if verbose:
             print('-'*100)
         return best_seeds, max_influence
 
-    def fit(self, budget: int, montecarlo_simulations: int, n_steps_max: int, verbose=False):
+    def fit(self, budget: int, montecarlo_simulations: int, n_steps_max: int, verbose=True):
         """
-        Greedy influence maximization algorithm. Serial execution
+        Greedy influence maximization algorithm. Serial execution with no parallel threads
         
-        Parameters
-        ---------
-        budget : budget for this social network
 
-        montecarlo_simulation : number of MonteCarlo Simulations
+        :param budget : budget for this social network
 
-        n_steps_max : max number of steps in a simulation
+        :param montecarlo_simulation : number of MonteCarlo Simulations
+
+        :param n_steps_max : max number of steps in a simulation
         """
 
         sampler = MonteCarloSampling(self.prob_matrix)
@@ -131,27 +123,22 @@ class GreedyLearner(SingleInfluenceLearner):
         max_influence = 0
         best_seeds = np.zeros(self.n_nodes)
         for i in range(budget):
-            #best_marginal_increase = 0
             step_influence = 0
 
-            for n in range(self.n_nodes):
+            for n in tqdm(range(self.n_nodes)) if verbose else range(self.n_nodes):
                 if best_seeds[n] == 0:
-                    # computer marginal increase
                     seeds = np.copy(best_seeds)
                     seeds[n] = 1  # add current node to seeds
 
-                    # computer marginal increase
                     nodes_probabilities = sampler.mc_sampling(seeds, montecarlo_simulations, n_steps_max)
                     influence = np.sum(nodes_probabilities)
 
-                    #marginal_increase = influence - step_influence
 
-                    if influence >= step_influence:
+                    if influence > step_influence or (influence == step_influence and np.random.random() > 0.5):
                         best_node = n
-                        #best_marginal_increase = marginal_increase
                         step_influence = influence
-                if n % 100 == 0 and verbose:
-                    print("Analysing node: %d of %d" % (n, self.n_nodes))
+
+
 
             best_seeds[best_node] = 1
             max_influence = step_influence
@@ -160,49 +147,38 @@ class GreedyLearner(SingleInfluenceLearner):
 
         return best_seeds, max_influence
 
-    def cumulative_fit(self, budget: int, montecarlo_simulations: int, n_steps_max: int, verbose=False):
+    def cumulative_fit(self, budget: int, montecarlo_simulations: int, n_steps_max: int, verbose=True):
         """
         Greedy influence maximization algorithm. Serial execution. Returns an array with tuple (node_step_i , reward_step_i)
         
-        Parameters
-        ---------
-        budget : budget for this social network
+        :param budget : budget for this social network
 
-        montecarlo_simulation : number of MonteCarlo Simulations
+        :param montecarlo_simulation : number of MonteCarlo Simulations
 
-        n_steps_max : max number of steps in a simulation
+        :param n_steps_max : max number of steps in a simulation
         """
 
         sampler = MonteCarloSampling(self.prob_matrix)
 
-        #max_influence = 0
         best_seeds = np.zeros(self.n_nodes)
         results = []
         for i in range(budget):
-            #best_marginal_increase = 0
             step_influence = 0
 
             for n in range(self.n_nodes):
                 if best_seeds[n] == 0:
-                    # computer marginal increase
                     seeds = np.copy(best_seeds)
                     seeds[n] = 1  # add current node to seeds
 
-                    # computer marginal increase
                     nodes_probabilities = sampler.mc_sampling(seeds, montecarlo_simulations, n_steps_max)
                     influence = np.sum(nodes_probabilities)
 
-                    #marginal_increase = influence - step_influence
-
-                    if influence >= step_influence:
+                    if influence > step_influence or (influence == step_influence and np.random.random() > 0.5):
                         best_node = n
-                        #best_marginal_increase = marginal_increase
+
                         step_influence = influence
-                # if n % 100 == 0:
-                #     print("Analysing node: %d of %d" % (n, self.n_nodes))
 
             best_seeds[best_node] = 1
-            #max_influence = step_influence
             results.append((best_node, step_influence))
             if verbose:
                 print("Node with best marginal increase at step %d: %d" % (i + 1, best_node))
@@ -217,13 +193,11 @@ class GreedyLearner(SingleInfluenceLearner):
             The node with the best marginal increase is added to the best seeds.
             The number of iterations is given by the budget
 
-            Parameters
-            ---------
-            budget : budget for this social network
+            :param budget : budget for this social network
 
-            montecarlo_simulation : number of MonteCarlo Simulations
+            :param montecarlo_simulation : number of MonteCarlo Simulations
 
-            n_steps_max : max number of steps in a simulation
+            :param n_steps_max : max number of steps in a simulation
             """
 
             max_influence = 0
@@ -233,7 +207,6 @@ class GreedyLearner(SingleInfluenceLearner):
                 print("Start Greedy Influence Maximisation with budget: %d, mc_simulations: %d, n_steps_max: %d" % (budget, montecarlo_simulations, n_steps_max))
             cumulative_results = []
             for i in range(budget):
-                #best_marginal_increase = 0 
                 step_influence = 0
 
                 results_async = []
@@ -252,11 +225,9 @@ class GreedyLearner(SingleInfluenceLearner):
 
                 for res in results:
                     n, influence = res
-                    #marginal_increase = influence - step_influence
                     
-                    if influence >= step_influence:
+                    if influence > step_influence or (influence == step_influence and np.random.random() > 0.5):
                         best_node = n
-                        #best_marginal_increase = marginal_increase
                         step_influence = influence
 
 
@@ -276,18 +247,13 @@ class GreedyLearner(SingleInfluenceLearner):
             Perform only one step of the greedy influence maximisation. Used in point 3 for joint budget allocation.
             Execution in parallel. Returns an array with tuple (node_step_i , reward_step_i)
             
-            Parameters
+            :param montecarlo_simulation : number of MonteCarlo Simulations
 
+            :param n_steps_max : max number of steps in a simulation
 
-            montecarlo_simulation : number of MonteCarlo Simulations
-
-            n_steps_max : max number of steps in a simulation
-
-            resume_seed (List[int]) : array that contains seeds computed at previous steps of the algo
+            :param resume_seed (List[int]) : array that contains seeds computed at previous steps of the algo
 
             """
-
-
         
             best_seeds = np.zeros(self.n_nodes)
             if resume_seeds:
@@ -312,19 +278,15 @@ class GreedyLearner(SingleInfluenceLearner):
 
             for res in results:
                 n, influence = res
-                #marginal_increase = influence - step_influence
                 
-                if influence >= step_influence:
+                if influence > step_influence or (influence == step_influence and np.random.random() > 0.5):
                     best_node = n
-                    #best_marginal_increase = marginal_increase
                     step_influence = influence
 
 
             best_seeds[best_node] = 1
 
-            if verbose:
-                print('-'*100)
-            return best_node, step_influence
+            return (best_node,step_influence)
 
 
 class ExactSolutionLearner(SingleInfluenceLearner):
@@ -336,13 +298,12 @@ class ExactSolutionLearner(SingleInfluenceLearner):
         """
         Basic exact influence maximization algorithm which enumerates all seeds node given a budget. Returns indexes of best seeds 
         
-        Parameters
-        ---------
-        budget : budget for this social network
 
-        montecarlo_simulation : number of MonteCarlo Simulations
+        :param budget : budget for this social network
 
-        n_steps_max : max number of steps in a simulation
+        :param montecarlo_simulation : number of MonteCarlo Simulations
+
+        :param n_steps_max : max number of steps in a simulation
         """
 
         sampler = MonteCarloSampling(self.prob_matrix)
