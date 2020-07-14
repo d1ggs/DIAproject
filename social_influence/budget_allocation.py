@@ -312,7 +312,7 @@ class StatelessBudgetAllocation(object):
                                                       self.dictionary_creation(results[1]), self.dictionary_creation(results[2])
         return results_dict1, results_dict2, results_dict3
 
-    def joint_influence_maximization(self, matrix1, matrix2, matrix3,weights=None):
+    def joint_influence_maximization(self, matrix1, matrix2, matrix3, weights=None, split_joint_influence=False):
         """"
 
         :return: array [budget1, budget2, budget3] with maximized joint social influence value respecting the constraint
@@ -360,7 +360,13 @@ class StatelessBudgetAllocation(object):
                 cumulative_influences[argument_to_increment][budget[argument_to_increment] + 1] = [best_node, influence]
 
         # Computes the final joint influence
-        joint_influence = cumulative_influences[0][budget[0]][1] + cumulative_influences[1][budget[1]][1] + \
+        if split_joint_influence:
+            joint_influence = (cumulative_influences[0][budget[0]][1],
+                               cumulative_influences[1][budget[1]][1],
+                               cumulative_influences[2][budget[2]][1])
+
+        else:
+            joint_influence = cumulative_influences[0][budget[0]][1] + cumulative_influences[1][budget[1]][1] + \
                           cumulative_influences[2][budget[2]][1]
 
         if self.verbose:

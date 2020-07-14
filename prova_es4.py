@@ -16,15 +16,15 @@ from social_influence.const import FEATURE_MAX, FEATURE_PARAM, SOCIAL_NAMES
 from social_influence.helper import Helper
 from social_influence.social_setup import SocialNetwork
 from social_influence.mc_sampling import MonteCarloSampling
-from social_influence.budget_allocation import CumulativeBudgetAllocation
+from social_influence.budget_allocation import CumulativeBudgetAllocation, StatelessBudgetAllocation
 
 from social_influence.LinUCB.LinUCBLearner import LinUCBLearner
 
 MAX_NODES = 50
-TOTAL_BUDGET = 7
+TOTAL_BUDGET = 3
 MAX_PROPAGATION_STEPS = 2
-N_EXPERIMENTS = 5
-T = 10
+N_EXPERIMENTS = 10
+T = 100
 
 n_social_networks = 3
 social_networks = []
@@ -51,6 +51,15 @@ budget_allocator = CumulativeBudgetAllocation(social_networks[0].get_matrix(), s
                                               n_steps_max)
 budgets, opt, optimal_seeds = budget_allocator.joint_influence_maximization()
 
+# clairvoyant_rew = np.sum(opt)
+# print(clairvoyant_rew)
+# exit()
+
+for i in optimal_seeds:
+    tmp = np.zeros(MAX_NODES)
+    tmp[optimal_seeds[i]] = 1
+    optimal_seeds[i] = tmp
+
 for i in range(n_social_networks):
     enviroments.append(LinUCBEnviroment(social_networks[i].get_matrix()))
     learners.append(
@@ -60,7 +69,9 @@ for i in range(n_social_networks):
 regret_per_experiment = []
 reward_per_timestep = []
 
-for e in range(N_EXPERIMENTS):
+comb_budget_allocator = StatelessBudgetAllocation(TOTAL_BUDGET, monte_carlo_simulations, n_steps_max)
+
+for e in trange(N_EXPERIMENTS):
     learners = []
     for i in range(n_social_networks):
         learners.append(
@@ -74,11 +85,8 @@ for e in range(N_EXPERIMENTS):
             reward = enviroments[j].round(pulled_arm)
             learners[j].update_values(pulled_arm, reward)
 
-        comb_budget_allocator = CumulativeBudgetAllocation(learners[0].get_prob_matrix(), learners[1].get_prob_matrix(),
-                                                           learners[2].get_prob_matrix(), TOTAL_BUDGET,
-                                                           monte_carlo_simulations, n_steps_max)
-
-        _, _, seeds = comb_budget_allocator.joint_influence_maximization()
+        _, _, seeds = comb_budget_allocator.joint_influence_maximization(learners[0].get_prob_matrix(), learners[1].get_prob_matrix(),
+                                                           learners[2].get_prob_matrix())
 
         comb_reward = 0
         clairvoyant_rew = 0
@@ -86,11 +94,17 @@ for e in range(N_EXPERIMENTS):
         random_seed = np.random.randint(0, 1000000)
 
         for z in range(n_social_networks):
-            mc_sampler = MonteCarloSampling(social_networks[z].get_matrix())
+            mc_sampler = samplers[z]
             seed = np.zeros(MAX_NODES)
             seed[seeds[z]] = 1
-            clairvoyant_rew += np.sum(mc_sampler.simulate_episode(optimal_seeds[z], n_steps_max, random_seed=random_seed))
-            comb_reward += np.sum(mc_sampler.simulate_episode(seed, n_steps_max, random_seed=random_seed))
+            clairvoyant_perf = np.sum(mc_sampler.simulate_episode(optimal_seeds[z], n_steps_max, random_seed=random_seed))
+            # print("Social {}, clairvoyant: {}".format(z+1, clairvoyant_perf))
+            learner_perf = np.sum(mc_sampler.simulate_episode(seed, n_steps_max, random_seed=random_seed))
+            # print("Social {}, learner: {}".format(z+1, learner_perf))
+            # print()
+
+            comb_reward += learner_perf
+            clairvoyant_rew += clairvoyant_perf
 
         cumulative_regret += clairvoyant_rew - comb_reward
         regret_per_timestep.append(cumulative_regret)
