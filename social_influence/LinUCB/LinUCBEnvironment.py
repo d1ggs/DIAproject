@@ -3,7 +3,7 @@ import numpy as np
 from social_influence.influence_maximisation import GreedyLearner
 
 
-class LinUCBEnviroment():
+class LinUCBEnvironment():
     def __init__(self, probability_matrix):
         self.probability_matrix = probability_matrix
 

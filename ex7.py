@@ -12,6 +12,7 @@ from pricing.conversion_rate import ProductConversionRate
 from pricing.environments import StationaryEnvironment, NonStationaryEnvironment
 from pricing.learners.ts_learner import TSLearner
 from pricing.const import TIME_HORIZON, N_EXPERIMENTS, PRICES, N_ARMS
+from social_influence.LinUCB.LinUCBEnvironment import LinUCBEnvironment
 from social_influence.const import FEATURE_MAX, FEATURE_PARAM, SOCIAL_NAMES
 from social_influence.helper import Helper
 from social_influence.social_setup import SocialNetwork
@@ -21,10 +22,10 @@ from social_influence.budget_allocation import StatelessBudgetAllocation
 from social_influence.LinUCB.LinUCBLearner import LinUCBLearner
 
 # Social influence constants
-MAX_NODES = 300
-TOTAL_BUDGET = 5
+MAX_NODES = 50
+TOTAL_BUDGET = 3
 MAX_PROPAGATION_STEPS = 2
-N_EXPERIMENTS = 10
+N_EXPERIMENTS = 5
 
 savedir = "./plots/ex_7/"
 
@@ -77,6 +78,8 @@ if __name__ == "__main__":
 
     original_ts_learners = []
 
+    LinUCBEnvironments = [LinUCBEnvironment(social_networks[i].get_matrix()) for i in range(3)]
+
     for i in range(3):
         product = products[i]
         product_id = product["product_id"]
@@ -89,11 +92,12 @@ if __name__ == "__main__":
         original_envs.append(NonStationaryEnvironment(prices=PRICES, curves=curves, horizon=TIME_HORIZON))
         original_ts_learners.append(TSLearner(PRICES))
 
-    for _ in range(N_EXPERIMENTS):
+    for e in range(N_EXPERIMENTS):
+        print("\nExperiment {} of {}".format(e+1, N_EXPERIMENTS))
+
         matrix_learners = [LinUCBLearner(social_networks[i].get_edge_features_matrix(), monte_carlo_simulations, MAX_PROPAGATION_STEPS, TOTAL_BUDGET) for i in range(3)]
 
         cumulative_regret_ts = [0, 0, 0]
-
         regrets_ts_per_timestep = [[], [], []]
         # regrets_ucb_per_timestep = [[], [], []]
 
@@ -115,8 +119,8 @@ if __name__ == "__main__":
 
                 fixed_size_seeds = np.zeros(MAX_NODES)
                 fixed_size_seeds[seeds[i].astype(int)] = 1.0
-                seeds_vector, target_pulled = samplers[i].simulate_episode(fixed_size_seeds, MAX_PROPAGATION_STEPS, target_edge=pulled_arms[i])
-
+                seeds_vector = samplers[i].simulate_episode(fixed_size_seeds, MAX_PROPAGATION_STEPS)
+                target_pulled = LinUCBEnvironments[i].round(pulled_arms[i])
                 matrix_learners[i].update_values(pulled_arms[i], int(target_pulled))
 
                 clicks = int(np.sum(seeds_vector[0] if seeds_vector.shape[0] == 1 else seeds_vector[1]))
@@ -170,7 +174,7 @@ if __name__ == "__main__":
 
         plt.figure()
         df = pd.DataFrame({"agent": labels, "regret": results, "timestep": timesteps, "experiment_id": indexes})
-        print(df["regret"])
+        # print(df["regret"])
         sns.lineplot(x="timestep", y="regret", data=df, hue="agent")
         plt.title(social_network + " - product " + str(product_index + 1) + " : mean regret over time")
         plt.savefig(savedir + "ex_7_{}_stationary_{}n_{}bdg_{}prop_{}ex.png".format(social_network, MAX_NODES, TOTAL_BUDGET, MAX_PROPAGATION_STEPS, N_EXPERIMENTS))

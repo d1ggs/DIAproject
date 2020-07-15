@@ -11,7 +11,7 @@ from social_influence.mc_sampling import MonteCarloSampling
 from social_influence.social_setup import SocialNetwork
 from social_influence.const import FEATURE_MAX, FEATURE_PARAM
 from social_influence.LinUCB.LinUCBLearner import *
-from social_influence.LinUCB.LinUCBEnviroment import *
+from social_influence.LinUCB.LinUCBEnvironment import *
 
 n_nodes = 100
 c = 2
@@ -34,7 +34,7 @@ n_edges = features_edge_matrix.shape[0]
 reward_per_experiment = []
 regret_per_experiment = []
 tetha = []
-env = LinUCBEnviroment(prob_matrix)
+env = LinUCBEnvironment(prob_matrix)
 sampler = MonteCarloSampling(social_network.get_matrix())
 
 opt, opt_seeds = env.opt(budget, mc_simulations, n_steps, parallel=True)

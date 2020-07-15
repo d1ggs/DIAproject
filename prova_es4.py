@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 from tqdm import trange, tqdm
 import copy
-from social_influence.LinUCB.LinUCBEnviroment import LinUCBEnviroment
+from social_influence.LinUCB.LinUCBEnvironment import LinUCBEnvironment
 from pricing.conversion_rate import ProductConversionRate
 from pricing.environments import StationaryEnvironment, NonStationaryEnvironment
 from pricing.learners.ts_learner import TSLearner
@@ -21,10 +21,10 @@ from social_influence.budget_allocation import CumulativeBudgetAllocation, State
 from social_influence.LinUCB.LinUCBLearner import LinUCBLearner
 
 MAX_NODES = 50
-TOTAL_BUDGET = 3
+TOTAL_BUDGET = 5
 MAX_PROPAGATION_STEPS = 2
-N_EXPERIMENTS = 10
-T = 100
+N_EXPERIMENTS = 5
+T = 50
 
 n_social_networks = 3
 social_networks = []
@@ -61,7 +61,7 @@ for i in optimal_seeds:
     optimal_seeds[i] = tmp
 
 for i in range(n_social_networks):
-    enviroments.append(LinUCBEnviroment(social_networks[i].get_matrix()))
+    enviroments.append(LinUCBEnvironment(social_networks[i].get_matrix()))
     learners.append(
         LinUCBLearner(social_networks[i].get_edge_features_matrix(), monte_carlo_simulations, n_steps_max, budgets[i],
                       c[i]))
@@ -71,22 +71,24 @@ reward_per_timestep = []
 
 comb_budget_allocator = StatelessBudgetAllocation(TOTAL_BUDGET, monte_carlo_simulations, n_steps_max)
 
-for e in trange(N_EXPERIMENTS):
+for e in range(N_EXPERIMENTS):
+    print("\nExperiment {} of {}".format(e+1, N_EXPERIMENTS))
     learners = []
     for i in range(n_social_networks):
         learners.append(
             LinUCBLearner(social_networks[i].get_edge_features_matrix(), monte_carlo_simulations, n_steps_max,
                           budgets[i], c[i]))
     cumulative_regret = 0
-    regret_per_timestep = []
-    for t in range(T):
+    regret_per_timestep = [0]
+    for t in trange(T):
         for j in range(n_social_networks):
             pulled_arm = learners[j].pull_arm()
             reward = enviroments[j].round(pulled_arm)
             learners[j].update_values(pulled_arm, reward)
 
-        _, _, seeds = comb_budget_allocator.joint_influence_maximization(learners[0].get_prob_matrix(), learners[1].get_prob_matrix(),
-                                                           learners[2].get_prob_matrix())
+        _, _, seeds = comb_budget_allocator.joint_influence_maximization(learners[0].get_prob_matrix(),
+                                                                         learners[1].get_prob_matrix(),
+                                                                         learners[2].get_prob_matrix())
 
         comb_reward = 0
         clairvoyant_rew = 0
@@ -98,10 +100,8 @@ for e in trange(N_EXPERIMENTS):
             seed = np.zeros(MAX_NODES)
             seed[seeds[z]] = 1
             clairvoyant_perf = np.sum(mc_sampler.simulate_episode(optimal_seeds[z], n_steps_max, random_seed=random_seed))
-            # print("Social {}, clairvoyant: {}".format(z+1, clairvoyant_perf))
-            learner_perf = np.sum(mc_sampler.simulate_episode(seed, n_steps_max, random_seed=random_seed))
-            # print("Social {}, learner: {}".format(z+1, learner_perf))
-            # print()
+            active_nodes = mc_sampler.simulate_episode(seed, n_steps_max, random_seed=random_seed)
+            learner_perf = np.sum(active_nodes)
 
             comb_reward += learner_perf
             clairvoyant_rew += clairvoyant_perf
@@ -126,8 +126,3 @@ sns.lineplot(x="timestep", y="regret", data=df)
 plt.title("mean regret over time")
 plt.savefig("LinUCB" ".png")
 plt.show()
-
-
-# plt.figure(0)
-# plt.plot(np.cumsum(np.mean(regret_per_experiment, axis=0)), 'r')
-# plt.show()

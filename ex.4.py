@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 from tqdm import trange, tqdm
 import copy
-from social_influence.LinUCB.LinUCBEnviroment import LinUCBEnviroment
+from social_influence.LinUCB.LinUCBEnvironment import LinUCBEnvironment
 from pricing.conversion_rate import ProductConversionRate
 from pricing.environments import StationaryEnvironment, NonStationaryEnvironment
 from pricing.learners.ts_learner import TSLearner
@@ -62,7 +62,7 @@ learners = []
 regret_per_experiment = []
 
 for i in range(n_social_networks):
-    enviroment = LinUCBEnviroment(social_networks[i].get_matrix())
+    enviroment = LinUCBEnvironment(social_networks[i].get_matrix())
     opt, opt_seed = enviroment.opt(budgets[i], monte_carlo_simulations, n_steps_max, parallel=True)
     sampler = MonteCarloSampling(social_networks[i].get_matrix())
     envs.append(enviroment)

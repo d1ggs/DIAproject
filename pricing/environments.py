@@ -118,7 +118,7 @@ class NonStationaryEnvironment(Environment):
         return np.max(tmp), np.argmax(tmp)
 
     def get_inst_regret(self, arm):
-        return self.opt_reward() - self.prices[arm] * self.curves[self.current_phase].get_probability(arm)
+        return self.opt_reward()[0] - self.prices[arm] * self.curves[self.current_phase].get_probability(arm)
 
     def plot(self):
         plot_expected = []
