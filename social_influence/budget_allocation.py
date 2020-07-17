@@ -1,6 +1,7 @@
 import numpy as np
 from social_influence.influence_maximisation import GreedyLearner
 
+
 class GreedyBudgetAllocation(object):
 
     def __init__(self, social1, social2, social3, budget_total,  mc_simulations, n_steps_montecarlo, verbose=False):
@@ -279,9 +280,9 @@ class StatelessBudgetAllocation(object):
     @staticmethod
     def dictionary_creation(influence_tuples):
         """
-        Discards seed informations and converts it into a dictionary
+        Converts influence tuples into a dictionary
         :param influence_tuples: array of tuples (seed, influence)
-        :return: dictionary {budget: influence}
+        :return: dictionary {budget: [seed, influence]}
         """
         dictionary = {}
         budget = 1
