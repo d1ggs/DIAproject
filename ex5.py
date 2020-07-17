@@ -46,7 +46,7 @@ if __name__ == "__main__":
         helper = Helper()
         dataset = helper.read_dataset(social_network + "_fixed")
 
-        # Each social network as a number of nodes equal to MAX_NODES
+        # Each social network has a number of nodes equal to MAX_NODES
         social = SocialNetwork(dataset, FEATURE_PARAM[index], FEATURE_MAX, max_nodes=MAX_NODES)
         social_networks.append(social)
 

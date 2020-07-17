@@ -18,7 +18,7 @@ class LinUCBEnvironment():
     def opt(self, budget, mc_simulations, n_steps, parallel=False):
         """
 
-        :return: il seed ottimo
+        :return: optimal seed
         """
         greedy_learner = GreedyLearner(self.probability_matrix, self.probability_matrix.shape[0])
         if parallel:
