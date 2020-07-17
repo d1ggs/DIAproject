@@ -12,7 +12,7 @@ class SWTSLearner(TSLearner):
         :param const: adjustment constant to consider the fact that at each time step we pull more than once
         """
         super().__init__(prices)
-        self.window_size = 4 * int(np.sqrt(horizon * const))
+        self.window_size = 4 * int(np.sqrt(horizon * const)) # compute the window size
         self.pulled_arms = np.array([])
         if verbose:
             print("SW-TS using window size:", self.window_size)
@@ -40,9 +40,6 @@ class SWTSLearner(TSLearner):
         self.beta_parameters[pulled_arm, 0] = max(1, cum_rew + reward)
         self.beta_parameters[pulled_arm, 1] = max(1, (n_samples - cum_rew) + (1 - reward))
 
-        # else:
-        #     self.beta_parameters[arm, 0] = cum_rew
-        #     self.beta_parameters[arm, 1] = n_samples - cum_rew
 
     def get_last_best_price(self):
         """

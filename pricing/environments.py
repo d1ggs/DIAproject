@@ -45,7 +45,6 @@ class StationaryEnvironment(Environment):
         :return: the sampled reward for the pulled arm
 
         """
-
         cr = self.curve.get_probability(pulled_arm)
         return np.random.binomial(1, cr)
 
@@ -82,7 +81,6 @@ class NonStationaryEnvironment(Environment):
         self.arms = np.arange(self.n_arms)
         self.curves = curves
         self.prices = prices
-
         self.t = 0  # Represents the current time step
         self.horizon = horizon
 
@@ -110,17 +108,28 @@ class NonStationaryEnvironment(Environment):
     def forward_time(self):
         self.t += 1
 
-
     def opt_reward(self):
+        """
+        Returns the optimal price and its index, with respect to the current phase
+        """
         tmp = []
         for i in range(self.n_arms):
             tmp.append(self.curves[self.current_phase].get_probability(self.arms[i]) * self.prices[i])
         return np.max(tmp), np.argmax(tmp)
 
     def get_inst_regret(self, arm):
+        """
+        Return the regret of the selected arm, computed as the difference between the optimal arm's reward
+        and the current arm's reward.
+        one.
+        :param arm: arm index
+        """
         return self.opt_reward()[0] - self.prices[arm] * self.curves[self.current_phase].get_probability(arm)
 
     def plot(self):
+        """
+        This method plots the optimal arms trend during the phases.
+        """
         plot_expected = []
         for curve in self.curves:
             t = []
@@ -138,6 +147,9 @@ class NonStationaryEnvironment(Environment):
         plt.show()
 
     def new_phase(self):
+        '''
+        Returns True is a new phases has started, False otherwise.
+        '''
         if self.start_new_phase:
             self.start_new_phase=False
             return True

@@ -11,7 +11,9 @@ class ConversionRateCurve(ABC):
 
 class Logistic(ConversionRateCurve):
     def __init__(self, mid: float, growth=1):
-        """:param mid: the point where the curve outputs 0.5"""
+        """
+        :param mid: the point where the curve outputs 0.5
+        """
         self.mid = mid
         self.growth = growth
 
@@ -31,6 +33,12 @@ class Linear(ConversionRateCurve):
 
 class ProductConversionRate(ConversionRateCurve):
     def __init__(self, product_id: int, season: int, n_prices: int, y_values: list):
+        """
+        :param product_id: ID of the product
+        :param season: phase index
+        :param n_prices: number of possible prices
+        :param: y_values: list that allows to build the conversion rate curve
+        """
         self.id = product_id
         self.season = season
         self.x = np.linspace(0, n_prices, 14)
@@ -40,6 +48,10 @@ class ProductConversionRate(ConversionRateCurve):
         self.n_prices = n_prices
 
     def get_probability(self, arm: int):
+        """
+        Returns the probability of the arm with respect to the conversion rate curve.
+        :param arm: arm index
+        """
         prob = self.p(arm)
         if arm < 0 or arm > self.n_prices:
             return 0
@@ -51,6 +63,9 @@ class ProductConversionRate(ConversionRateCurve):
             return prob
 
     def plot(self):
+        """
+        This method plots the conversion rate curve.
+        """
         new_x = np.linspace(0, self.n_prices, 100)
         plt.figure()
         plt.title("Product {} season {}".format(self.id, self.season))

@@ -3,14 +3,16 @@ import numpy as np
 
 
 class TSLearner(Learner):
+    """Implements a Thompson Sampling learner"""
+
     def __init__(self, prices: list):
+        """
+        :param prices: list of possible prices
+        """
         self.n_arms = len(prices)
         super().__init__(prices)
-
-        # self.prices = np.random.randint(0, 100, self.n_arms)
-        # print(self.prices)
         self.prices = prices
-        self.beta_parameters = np.ones((self.n_arms, 2))
+        self.beta_parameters = np.ones((self.n_arms, 2))  # initialization of the beta parameters
 
     def pull_arm(self):
         # Explore all arms once
@@ -27,7 +29,10 @@ class TSLearner(Learner):
         return idx
 
     def update(self, pulled_arm, reward):
-
+        """
+        :param pulled_arm: index of the pulled arm
+        :param reward: reward of the pulled arm
+        """
         self.t += 1
 
         # Update the observations list
@@ -56,4 +61,3 @@ class TSLearner(Learner):
         best_arm_conversion_prob = beta[0] / (beta[0] + beta[1])
 
         return self.prices[best_price_index] * best_arm_conversion_prob
-
