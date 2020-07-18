@@ -60,7 +60,7 @@ class StationaryEnvironment(Environment):
         self.curve.plot()
 
     def get_inst_regret(self, arm):
-        return self.opt_reward() - self.prices[arm] * self.curve.get_probability(arm)
+        return self.opt_reward()[0] - self.prices[arm] * self.curve.get_probability(arm)
 
 
 class NonStationaryEnvironment(Environment):
@@ -147,10 +147,10 @@ class NonStationaryEnvironment(Environment):
         plt.show()
 
     def new_phase(self):
-        '''
-        Returns True is a new phases has started, False otherwise.
-        '''
+        """
+        :returns: True is a new phases has started, False otherwise.
+        """
         if self.start_new_phase:
-            self.start_new_phase=False
+            self.start_new_phase = False
             return True
         return False

@@ -10,8 +10,8 @@ from pricing.conversion_rate import ProductConversionRate
 from pricing.environments import StationaryEnvironment
 from pricing.learners.UCBLearner import UCBLearner
 from pricing.learners.ts_learner import TSLearner
-from pricing.const import *
-from social_influence.const import FEATURE_MAX, FEATURE_PARAM, SOCIAL_NAMES, MAX_NODES
+from pricing.const import PRODUCT_FILE, N_ARMS, PRICES
+from social_influence.const import FEATURE_MAX, FEATURE_PARAM, SOCIAL_NAMES
 from social_influence.helper import Helper
 from social_influence.social_setup import SocialNetwork
 from social_influence.budget_allocation import CumulativeBudgetAllocation
@@ -21,7 +21,8 @@ TOTAL_BUDGET = 5
 MAX_PROPAGATION_STEPS = 3
 N_EXPERIMENTS = 50
 TIME_HORIZON = 120
-monte_carlo_simulations = 3
+MC_SIMULATIONS = 5
+MAX_NODES = 500
 
 SAVEDIR = "./plots/ex_5/"
 
@@ -52,10 +53,6 @@ if __name__ == "__main__":
 
     ts_regrets_per_experiment = [[], [], []]
     ucb_regrets_per_experiment = [[], [], []]
-
-    print("\nPrecomputing social influence for maximum budget...")
-
-    print("\nPerforming experiments...")
 
     original_envs = []
     original_ts_learners = []
@@ -89,26 +86,31 @@ if __name__ == "__main__":
     # has only one optimal price.
     budget_allocator = CumulativeBudgetAllocation(social_networks[0].get_matrix(), social_networks[1].get_matrix(),
                                                   social_networks[2].get_matrix(), TOTAL_BUDGET,
-                                                  monte_carlo_simulations, MAX_PROPAGATION_STEPS)
+                                                  MC_SIMULATIONS, MAX_PROPAGATION_STEPS, verbose=False)
+
+    print("\nPrecomputing social influence for maximum budget...")
     budget, average_joint_influence, best_seeds = budget_allocator.joint_influence_maximization(weights=opt_weights,
                                                                                                 split_joint_influence=True)
     opt_clicks = [int(round(average_joint_influence[i])) for i in range(3)]
 
-    for _ in trange(N_EXPERIMENTS):
+    print("\nPerforming experiments...")
+
+    for e in range(N_EXPERIMENTS):
+        print("\nExperiment {} of {}".format(e+1, N_EXPERIMENTS))
 
         # Initialization of the regrets
         cumulative_regret_ts = [0, 0, 0]
         cumulative_regret_ucb = [0, 0, 0]
 
-        regrets_ts_per_timestep = [[], [], []]
-        regrets_ucb_per_timestep = [[], [], []]
+        regrets_ts_per_timestep = [[0], [0], [0]]
+        regrets_ucb_per_timestep = [[0], [0], [0]]
 
         # Generation of new environment and learners for the current experiment
         envs = copy.deepcopy(original_envs)
         ts_learners = copy.deepcopy(original_ts_learners)
         ucb_learners = copy.deepcopy(original_ucb_learners)
 
-        for _ in range(TIME_HORIZON):
+        for _ in trange(TIME_HORIZON):
 
             # Compute the joint inflence maximisation using the current best prices as weights for each social network
             weights = [ts_learners[i].get_last_best_price() for i in range(3)]
@@ -187,3 +189,29 @@ if __name__ == "__main__":
         plt.savefig(SAVEDIR + "ex_5_{}_{}n_{}bdg_{}prop_{}ex.png".format(social_network, MAX_NODES, TOTAL_BUDGET,
                                                                          MAX_PROPAGATION_STEPS, N_EXPERIMENTS))
         plt.show()
+
+    # Cumulative plot
+
+    labels = []
+    results = []
+    timesteps = []
+    indexes = []
+
+    for agent, experiments in zip(agents, regrets):
+
+        total_regret = np.sum(experiments, axis=0)
+
+        for experiment, index in zip(total_regret, range(len(total_regret))):
+            timesteps.extend(np.arange(len(experiment)))
+            results.extend(experiment)
+            indexes.extend([index] * len(experiment))
+            labels.extend([agent] * len(experiment))
+
+    plt.figure()
+    df = pd.DataFrame({"regret": results, "timestep": timesteps, "experiment_id": indexes, "agent": labels})
+    sns.lineplot(x="timestep", y="regret", data=df, hue="agent")
+    plt.title("Cumulative mean regret over time")
+    plt.savefig(SAVEDIR + "ex_5_cumulative_{}n_{}bdg_{}prop_{}ex.png".format(MAX_NODES, TOTAL_BUDGET,
+                                                                             MAX_PROPAGATION_STEPS, N_EXPERIMENTS))
+    plt.show()
+

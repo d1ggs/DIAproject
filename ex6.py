@@ -20,10 +20,10 @@ from social_influence.budget_allocation import CumulativeBudgetAllocation
 # Overwritten constants
 TOTAL_BUDGET = 5
 MAX_PROPAGATION_STEPS = 3
-N_EXPERIMENTS = 5
+N_EXPERIMENTS = 15
 TIME_HORIZON = 360
-monte_carlo_simulations = 3
-n_steps_max = 5
+MC_SIMULATIONS = 3
+MAX_NODES = 300
 
 SAVEDIR = "./plots/ex_6/"
 
@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
     budget_allocator = CumulativeBudgetAllocation(social_networks[0].get_matrix(), social_networks[1].get_matrix(),
                                                   social_networks[2].get_matrix(), TOTAL_BUDGET,
-                                                  monte_carlo_simulations, MAX_PROPAGATION_STEPS)
+                                                  MC_SIMULATIONS, MAX_PROPAGATION_STEPS)
 
     print("\nPerforming experiments...")
 
@@ -87,16 +87,16 @@ if __name__ == "__main__":
         original_swucb_learners.append(SWUCBLearner(TIME_HORIZON, PRICES, const=SLIDING_WINDOW_CONSTANTS[i]))
         original_swts_learners.append(SWTSLearner(PRICES, TIME_HORIZON, const=SLIDING_WINDOW_CONSTANTS[i]))
 
-    for _ in range(N_EXPERIMENTS):
-
+    for e in range(N_EXPERIMENTS):
+        print("\nExperiment {} of {}".format(e+1, N_EXPERIMENTS))
         # Initialization of the regrets
         cumulative_regret_ts = [0, 0, 0]
         cumulative_regret_swucb = [0, 0, 0]
         cumulative_regret_swts = [0, 0, 0]
 
-        regrets_ts_per_timestep = [[], [], []]
-        regrets_swucb_per_timestep = [[], [], []]
-        regrets_swts_per_timestep = [[], [], []]
+        regrets_ts_per_timestep = [[0], [0], [0]]
+        regrets_swucb_per_timestep = [[0], [0], [0]]
+        regrets_swts_per_timestep = [[0], [0], [0]]
 
         # Generation of new environment and learners for the current experiment
         envs = copy.deepcopy(original_envs)
@@ -215,3 +215,29 @@ if __name__ == "__main__":
         plt.savefig(SAVEDIR + "ex_6_{}_{}n_{}bdg_{}prop_{}ex.png".format(social_network, MAX_NODES, TOTAL_BUDGET,
                                                                          MAX_PROPAGATION_STEPS, N_EXPERIMENTS))
         plt.show()
+
+
+    # Cumulative plot
+
+    labels = []
+    results = []
+    timesteps = []
+    indexes = []
+
+    for agent, experiments in zip (agents, regrets):
+
+        total_regret = np.sum(experiments, axis=0)
+
+        for experiment, index in zip(total_regret, range(len(total_regret))):
+            timesteps.extend(np.arange(len(experiment)))
+            results.extend(experiment)
+            indexes.extend([index] * len(experiment))
+            labels.extend([agent] * len(experiment))
+
+    plt.figure()
+    df = pd.DataFrame({"regret": results, "timestep": timesteps, "experiment_id": indexes, "agent": labels})
+    sns.lineplot(x="timestep", y="regret", data=df, hue="agent")
+    plt.title("Cumulative mean regret over time")
+    plt.savefig(SAVEDIR + "ex_6_cumulative_{}n_{}bdg_{}prop_{}ex.png".format(MAX_NODES, TOTAL_BUDGET,
+                                                                             MAX_PROPAGATION_STEPS, N_EXPERIMENTS))
+    plt.show()

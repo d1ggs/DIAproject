@@ -3,19 +3,20 @@ import numpy as np
 from social_influence.influence_maximisation import GreedyLearner
 
 
-class LinUCBEnvironment():
+class LinUCBEnvironment(object):
     """
     Environment for LinUCB learner
     """
-    def __init__(self, probability_matrix):
+
+    def __init__(self, probability_matrix: np.ndarray):
         """
-        :param probability_matrix: probability matrix representing a social network
+        :param probability_matrix: edge activation probability matrix representing a social network
         """
         self.probability_matrix = probability_matrix
 
-    def round(self, pulled_arm):
+    def round(self, pulled_arm: list):
         """
-        Returns 1 if the pulled edge has been activated
+        :return: 1 if the pulled edge has been activated
         :param pulled_arm: index of the selected arm
         """
         p = np.random.random()
@@ -24,15 +25,14 @@ class LinUCBEnvironment():
         else:
             return 0
 
-
     def opt(self, budget, mc_simulations, n_steps, parallel=False):
         """
-        Returns the optimal seed, calculated using a Greedy Learner over the probability matrix
+        :return: the optimal seed, calculated using a Greedy Learner over the probability matrix
 
         :param budget: budget of the social network
-        :param mc_simulations: number of MonteCarlo simulations
+        :param mc_simulations: number of Monte-Carlo simulations
         :param n_steps: maximum number of steps in a simulation
-        :param parallel: True if the algorithm is executed with parallel thread
+        :param parallel: True if the algorithm is executed with parallel threading
         """
         greedy_learner = GreedyLearner(self.probability_matrix, self.probability_matrix.shape[0])
         if parallel:

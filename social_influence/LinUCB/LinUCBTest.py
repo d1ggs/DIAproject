@@ -33,7 +33,7 @@ n_edges = features_edge_matrix.shape[0]
 
 reward_per_experiment = []
 regret_per_experiment = []
-tetha = []
+theta = []
 env = LinUCBEnvironment(prob_matrix)
 sampler = MonteCarloSampling(social_network.get_matrix())
 
@@ -46,15 +46,15 @@ for e in trange(n_experiment):
 
     for t in range(T):
         pulled_arm = learner.pull_arm()
-        # reward = env.round(pulled_arm)
+        reward = env.round(pulled_arm)
         learner_seeds, _ = learner.find_best_seeds(parallel=True)
 
         history_vector = sampler.simulate_episode(opt_seeds, n_steps)
         opt_reward = np.sum(history_vector) - budget
 
-        history_vector, target_activated = sampler.simulate_episode(learner_seeds, n_steps, target_edge=pulled_arm)
+        history_vector = sampler.simulate_episode(learner_seeds, n_steps)
         learner_reward = np.sum(history_vector) - budget
-        learner.update_values(pulled_arm, int(target_activated))
+        learner.update_values(pulled_arm, reward)
 
         inst_regret = opt_reward-learner_reward
 

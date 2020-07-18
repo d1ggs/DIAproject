@@ -5,7 +5,7 @@ from social_influence.influence_maximisation import GreedyLearner
 class LinUCBLearner(object):
     """Class implementing LinUCB learner"""
 
-    def __init__(self, feature_matrix, mc_simulations, n_steps, budget, c=1):
+    def __init__(self, feature_matrix: np.ndarray, mc_simulations: int, n_steps: int, budget: int, c=1):
         """
         :param feature_matrix: features matrix of the social network
         :param mc_simulations: number of MonteCarlo simulations
@@ -17,7 +17,7 @@ class LinUCBLearner(object):
         self.c = c
         self.n_nodes = self.feature_matrix.shape[0]
         self.n_features = self.feature_matrix.shape[2]
-        self.M = np.identity(self.n_features)   # initialization of the matrix M
+        self.M = np.identity(self.n_features)  # initialization of the matrix M
         self.B = np.atleast_2d(np.zeros(self.n_features)).T  # initialization of the matrix B
         self.collected_rewards = []
         self.pulled_arms = []
@@ -26,7 +26,7 @@ class LinUCBLearner(object):
         self.theta = np.zeros(shape=(1, self.feature_matrix.shape[2]))
         self.n_experiment = 0
         self.prob_matrix = np.zeros((self.feature_matrix.shape[0], self.feature_matrix.shape[0]))
-                    #  initialization of the probability matrix
+        #  initialization of the probability matrix
         self.budget = budget
         self.mc_simulations = mc_simulations
         self.n_steps = n_steps
@@ -51,7 +51,7 @@ class LinUCBLearner(object):
         pulled_arm = np.unravel_index(np.argmax(ucbs), ucbs.shape)
         return pulled_arm
 
-    def update_values(self, arm_index, reward):
+    def update_values(self, arm_index: list, reward: int):
         """
         Updates the matrices M and B
         :param arm_index: edge indexes, which are the outgoing and ingoing nodes
@@ -62,7 +62,6 @@ class LinUCBLearner(object):
         pulled_edge_features = np.atleast_2d(self.feature_matrix[arm_index[0], arm_index[1]]).T
         self.M += np.dot(pulled_edge_features, pulled_edge_features.T)
         self.B += pulled_edge_features * reward
-
 
     def __calc_prob_matrix(self):
         for i in range(self.feature_matrix.shape[0]):
@@ -87,4 +86,3 @@ class LinUCBLearner(object):
         else:
             seed, reward = greedy_learner.fit(self.budget, self.mc_simulations, self.n_steps, verbose=False)
         return seed, reward - self.budget
-

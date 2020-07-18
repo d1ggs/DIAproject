@@ -22,12 +22,12 @@ from social_influence.budget_allocation import StatelessBudgetAllocation
 from social_influence.LinUCB.LinUCBLearner import LinUCBLearner
 
 # Social influence constants
-MAX_NODES = 50
+MAX_NODES = 300
 TOTAL_BUDGET = 3
 MAX_PROPAGATION_STEPS = 2
 N_EXPERIMENTS = 5
 
-savedir = "./plots/ex_7/"
+SAVEDIR = "./plots/ex_7/"
 
 
 if __name__ == "__main__":
@@ -111,26 +111,37 @@ if __name__ == "__main__":
         envs = copy.deepcopy(original_envs)
 
         cumulative_regret_ts = [0, 0, 0]
-        regrets_ts_per_timestep = [[], [], []]
+        regrets_ts_per_timestep = [[0], [0], [0]]
 
+        # Passing time loop
         for _ in trange(TIME_HORIZON):
+            # Extract the currently best performing arm
             weights = [ts_learners[i].get_last_best_price() for i in range(3)]
-            social_1 = matrix_learners[0].get_prob_matrix()
-            social_2 = matrix_learners[1].get_prob_matrix()
-            social_3 = matrix_learners[2].get_prob_matrix()
 
+            # Extract the edge activation probability estimated matrices
+            estimated_matrices = [matrix_learners[i].get_prob_matrix() for i in range(3)]
+
+            # LinUCB candidate edge extraction
             pulled_arms = [matrix_learners[i].pull_arm() for i in range(3)]
 
-            budget, _, seeds = budget_allocator.joint_influence_maximization(social_1, social_2, social_3, weights=weights)
+            # Compute joint influence and budget allocation
+            budget, _, seeds = budget_allocator.joint_influence_maximization(estimated_matrices[0],
+                                                                             estimated_matrices[1],
+                                                                             estimated_matrices[2], weights=weights)
 
             for i in range(3):
-
+                # Convert from node indexes seed to binary encoding
                 fixed_size_seeds = np.zeros(MAX_NODES)
                 fixed_size_seeds[seeds[i].astype(int)] = 1.0
+
+                # Compute social influence simulating the cascade
                 seeds_vector = samplers[i].simulate_episode(fixed_size_seeds, MAX_PROPAGATION_STEPS)
+
+                # Check if the target edges of LinUCB would activate and update the learner
                 target_pulled = LinUCBEnvironments[i].round(pulled_arms[i])
                 matrix_learners[i].update_values(pulled_arms[i], int(target_pulled))
 
+                # The number of users for the pricing phase is the sum of activated nodes in social influence
                 clicks = int(np.sum(seeds_vector[0] if seeds_vector.shape[0] == 1 else seeds_vector[1]))
 
                 # Bandit pricing
@@ -174,6 +185,26 @@ if __name__ == "__main__":
         # print(df["regret"])
         sns.lineplot(x="timestep", y="regret", data=df, hue="agent")
         plt.title(social_network + " - product " + str(product_index + 1) + " : mean regret over time")
-        plt.savefig(savedir + "ex_7_{}_stationary_{}n_{}bdg_{}prop_{}ex.png".format(social_network, MAX_NODES, TOTAL_BUDGET, MAX_PROPAGATION_STEPS, N_EXPERIMENTS))
+        plt.savefig(SAVEDIR + "ex_7_{}_stationary_{}n_{}bdg_{}prop_{}ex.png".format(social_network, MAX_NODES, TOTAL_BUDGET, MAX_PROPAGATION_STEPS, N_EXPERIMENTS))
         plt.show()
+
+
+    # Cumulative plot
+
+
+    total_regret = np.sum(ts_regrets_per_experiment, axis=0)
+
+    for experiment, index in zip(total_regret, range(len(total_regret))):
+        timesteps.extend(np.arange(len(experiment)))
+        results.extend(experiment)
+        indexes.extend([index] * len(experiment))
+        #labels.extend(["TS"] * len(experiment))
+
+    plt.figure()
+    df = pd.DataFrame({"regret": results, "timestep": timesteps, "experiment_id": indexes, "agent": labels})
+    sns.lineplot(x="timestep", y="regret", data=df)
+    plt.title("Cumulative mean regret over time")
+    plt.savefig(SAVEDIR + "ex_7_cumulative_{}n_{}bdg_{}prop_{}ex.png".format(MAX_NODES, TOTAL_BUDGET,
+                                                                             MAX_PROPAGATION_STEPS, N_EXPERIMENTS))
+    plt.show()
 
