@@ -72,7 +72,7 @@ for e in range(N_EXPERIMENTS):
     # Reset the learners
     learners = copy.deepcopy(original_learners)
 
-    cumulative_regret = 0
+    cumulative_regret = [0, 0, 0]
     regret_per_timestep = [np.asarray([0, 0, 0])]
 
     # Passing time loop
@@ -117,7 +117,8 @@ for e in range(N_EXPERIMENTS):
             comb_reward += learner_perf
             clairvoyant_rew += clairvoyant_perf
             regret = clairvoyant_perf - learner_perf
-            social_regrets.append(regret)
+            cumulative_regret[z] += regret
+            social_regrets.append(cumulative_regret[z])
 
         # Compute the regret
         # cumulative_regret += clairvoyant_rew - comb_reward
