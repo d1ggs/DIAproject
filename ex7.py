@@ -194,25 +194,21 @@ if __name__ == "__main__":
     agents = ["TS"]
     regrets = [ts_regrets_per_experiment]
 
-    labels = []
     results = []
     timesteps = []
     indexes = []
 
-    for social_network, product_index, regret in zip(SOCIAL_NAMES, range(3), ts_regrets_per_experiment):
+    for social_network, product_index, regret_data in zip(SOCIAL_NAMES, range(3), ts_regrets_per_experiment):
 
         # Prepare the data structures for the dataframe
-        for agent, data in zip(agents, [regret]):
-            for experiment, index in zip(data, range(len(data))):
-                labels.extend([agent] * len(experiment))
-                timesteps.extend(np.arange(len(experiment)))
-                results.extend(experiment)
-                indexes.extend([index] * len(experiment))
+        for experiment, index in zip(regret_data, range(len(regret_data))):
+            timesteps.extend(np.arange(len(experiment)))
+            results.extend(experiment)
+            indexes.extend([index] * len(experiment))
 
         plt.figure()
-        df = pd.DataFrame({"agent": labels, "regret": results, "timestep": timesteps, "experiment_id": indexes})
-        # print(df["regret"])
-        sns.lineplot(x="timestep", y="regret", data=df, hue="agent")
+        df = pd.DataFrame({"regret": results, "timestep": timesteps, "experiment_id": indexes})
+        sns.lineplot(x="timestep", y="regret", data=df)
         plt.title(social_network + " - product " + str(product_index + 1) + " : mean regret over time")
         plt.savefig(SAVEDIR + "ex_7_{}_stationary_{}n_{}bdg_{}prop_{}ex.png".format(social_network, MAX_NODES, TOTAL_BUDGET, MAX_PROPAGATION_STEPS, N_EXPERIMENTS))
         plt.show()
@@ -220,7 +216,6 @@ if __name__ == "__main__":
 
     # Cumulative plot
 
-    labels = []
     results = []
     timesteps = []
     indexes = []
@@ -231,10 +226,9 @@ if __name__ == "__main__":
         timesteps.extend(np.arange(len(experiment)))
         results.extend(experiment)
         indexes.extend([index] * len(experiment))
-        #labels.extend(["TS"] * len(experiment))
 
     plt.figure()
-    df = pd.DataFrame({"regret": results, "timestep": timesteps, "experiment_id": indexes, "agent": labels})
+    df = pd.DataFrame({"regret": results, "timestep": timesteps, "experiment_id": indexes})
     sns.lineplot(x="timestep", y="regret", data=df)
     plt.title("Cumulative mean regret over time")
     plt.savefig(SAVEDIR + "ex_7_cumulative_{}n_{}bdg_{}prop_{}ex.png".format(MAX_NODES, TOTAL_BUDGET,
