@@ -14,10 +14,13 @@ from pricing.learners.swts_learner import SWTSLearner
 from pricing.const import *
 from social_influence.const import FEATURE_MAX, FEATURE_PARAM, SOCIAL_NAMES, MAX_NODES
 from social_influence.helper import Helper
+from social_influence.mc_sampling import MonteCarloSampling
 from social_influence.social_setup import SocialNetwork
 from social_influence.budget_allocation import CumulativeBudgetAllocation
 
 # Overwritten constants
+from utils import seeds_to_binary
+
 TOTAL_BUDGET = 5
 MAX_PROPAGATION_STEPS = 3
 N_EXPERIMENTS = 15
@@ -31,6 +34,7 @@ if __name__ == "__main__":
 
     social_networks = []
     products = []
+    samplers = []
 
     # Load the products information
     with open(PRODUCT_FILE, 'r') as productfile:
@@ -43,7 +47,7 @@ if __name__ == "__main__":
 
     print("Loading social networks and products...\n")
 
-    # Social network generation
+    # Social network and sampler allocation
     for social_network, index in zip(SOCIAL_NAMES, range(len(SOCIAL_NAMES))):
         helper = Helper()
         dataset = helper.read_dataset(social_network + "_fixed")
@@ -51,6 +55,9 @@ if __name__ == "__main__":
         # Each social network as a number of nodes equal to MAX_NODES
         social = SocialNetwork(dataset, FEATURE_PARAM[index], FEATURE_MAX, max_nodes=MAX_NODES)
         social_networks.append(social)
+
+        mc_sampler = MonteCarloSampling(social.get_matrix().copy())
+        samplers.append(mc_sampler)
 
     ts_regrets_per_experiment = [[], [], []]
     swucb_regrets_per_experiment = [[], [], []]
@@ -129,11 +136,17 @@ if __name__ == "__main__":
             weights = [swts_learners[i].get_last_best_price() for i in range(3)]
             budget, joint_influence, seeds = budget_allocator.joint_influence_maximization(weights=weights,
                                                                                            split_joint_influence=True)
-            for i in range(3):
-                opt_clairvoyant = opt_clicks[i] * opt_weights[i]
+            seeds = seeds_to_binary(seeds, MAX_NODES)
 
-                # The number of clicks for the timestep is given by the social influence value = number of activated nodes
-                learner_clicks = int(round(joint_influence[i]))
+            for i in range(3):
+
+                fixed_size_seeds = seeds[i]
+
+                # Compute social influence simulating the cascade
+                seeds_vector = samplers[i].simulate_episode(fixed_size_seeds, MAX_PROPAGATION_STEPS)
+
+                # The number of users for the pricing phase is the sum of activated nodes in social influence
+                learner_clicks = int(np.sum(seeds_vector))
 
                 # Bandit pricing
                 reward_swucb = 0

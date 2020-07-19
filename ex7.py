@@ -21,6 +21,8 @@ from social_influence.budget_allocation import StatelessBudgetAllocation
 
 from social_influence.LinUCB.LinUCBLearner import LinUCBLearner
 
+from utils import seeds_to_binary
+
 # Social influence constants
 MAX_NODES = 300
 TOTAL_BUDGET = 3
@@ -65,7 +67,6 @@ if __name__ == "__main__":
         products.append(product)
 
     # Instantiate the budget allocator
-    print("\nPrecomputing social influence for maximum budget...")
     budget_allocator = StatelessBudgetAllocation(TOTAL_BUDGET, monte_carlo_simulations, MAX_PROPAGATION_STEPS)
 
     # Learners and regret support variables
@@ -87,16 +88,35 @@ if __name__ == "__main__":
         product = products[i]
         product_id = product["product_id"]
 
-        # Load the seasonal conversion rate curves
-        curves = []
+        # Load the season curve
         seasons = product["seasons"]
-        for season in seasons:
-            y = season["y_values"]
-            season_id = season["season_id"]
-            curves.append(ProductConversionRate(product_id, season_id, N_ARMS, y))
+        phase = 0  # In the stationary scenario only the first phase is considered
+        season_id = seasons[phase]["season_id"]
+        y = seasons[phase]["y_values"]
+        curve = ProductConversionRate(product_id, season_id, N_ARMS, y)
+        original_envs.append(StationaryEnvironment(prices=PRICES, curve=curve))
 
-        original_envs.append(NonStationaryEnvironment(prices=PRICES, curves=curves, horizon=TIME_HORIZON))
         original_ts_learners.append(TSLearner(PRICES))
+
+    opt_weights = []
+    best_arms = []
+
+    # Compute the optimal prices for each product
+    for i in range(3):
+        weight, best_arm = original_envs[i].opt_reward()
+        opt_weights.append(weight)
+        best_arms.append(best_arm)
+
+    print("\nPrecomputing social influence for maximum budget...")
+
+    budget, average_joint_influence, best_seeds = budget_allocator.joint_influence_maximization(social_networks[0].get_matrix(),
+                                                                                                social_networks[1].get_matrix(),
+                                                                                                social_networks[2].get_matrix(),
+                                                                                                weights=opt_weights,
+                                                                                                split_joint_influence=True)
+
+    opt_clicks = [int(round(average_joint_influence[i])) for i in range(3)]
+
 
     # Main experiment loop
 
@@ -116,7 +136,7 @@ if __name__ == "__main__":
         # Passing time loop
         for _ in trange(TIME_HORIZON):
             # Extract the currently best performing arm
-            weights = [ts_learners[i].get_last_best_price() for i in range(3)]
+            price_weights = [ts_learners[i].get_last_best_price() for i in range(3)]
 
             # Extract the edge activation probability estimated matrices
             estimated_matrices = [matrix_learners[i].get_prob_matrix() for i in range(3)]
@@ -127,34 +147,43 @@ if __name__ == "__main__":
             # Compute joint influence and budget allocation
             budget, _, seeds = budget_allocator.joint_influence_maximization(estimated_matrices[0],
                                                                              estimated_matrices[1],
-                                                                             estimated_matrices[2], weights=weights)
+                                                                             estimated_matrices[2],
+                                                                             weights=price_weights)
+
+            seeds = seeds_to_binary(seeds, MAX_NODES)
 
             for i in range(3):
+
                 # Convert from node indexes seed to binary encoding
-                fixed_size_seeds = np.zeros(MAX_NODES)
-                fixed_size_seeds[seeds[i].astype(int)] = 1.0
+                fixed_size_seeds = seeds[i]
 
                 # Compute social influence simulating the cascade
                 seeds_vector = samplers[i].simulate_episode(fixed_size_seeds, MAX_PROPAGATION_STEPS)
+
+                # The number of users for the pricing phase is the sum of activated nodes in social influence
+                learner_clicks = int(np.sum(seeds_vector))
 
                 # Check if the target edges of LinUCB would activate and update the learner
                 target_pulled = LinUCBEnvironments[i].round(pulled_arms[i])
                 matrix_learners[i].update_values(pulled_arms[i], int(target_pulled))
 
-                # The number of users for the pricing phase is the sum of activated nodes in social influence
-                clicks = int(np.sum(seeds_vector[0] if seeds_vector.shape[0] == 1 else seeds_vector[1]))
-
                 # Bandit pricing
 
+                reward_ts = 0
+                reward_clairvoyant = 0
+
                 # Choose a price for each user and compute reward
-                for _ in range(clicks):
+                for _ in range(learner_clicks):
                     pulled_arm = ts_learners[i].pull_arm()  # Select the price to offer
                     reward = envs[i].round(pulled_arm)  # Observe if the user buys
                     ts_learners[i].update(pulled_arm, reward)
+                    reward_ts += reward * PRICES[pulled_arm]
 
-                    # Update regret
-                    cumulative_regret_ts[i] += envs[i].get_inst_regret(pulled_arm)
+                for _ in range(opt_clicks[i]):
+                    reward_clairvoyant += envs[i].round(best_arms[i]) * PRICES[best_arms[i]]
 
+                # Update regret
+                cumulative_regret_ts[i] += reward_clairvoyant - reward_ts
                 regrets_ts_per_timestep[i].append(cumulative_regret_ts[i])
 
         for i in range(3):

@@ -13,13 +13,16 @@ from pricing.learners.ts_learner import TSLearner
 from pricing.const import PRODUCT_FILE, N_ARMS, PRICES
 from social_influence.const import FEATURE_MAX, FEATURE_PARAM, SOCIAL_NAMES
 from social_influence.helper import Helper
+from social_influence.mc_sampling import MonteCarloSampling
 from social_influence.social_setup import SocialNetwork
 from social_influence.budget_allocation import CumulativeBudgetAllocation
 
 # Overwritten constants
+from utils import seeds_to_binary
+
 TOTAL_BUDGET = 5
 MAX_PROPAGATION_STEPS = 3
-N_EXPERIMENTS = 50
+N_EXPERIMENTS = 20
 TIME_HORIZON = 120
 MC_SIMULATIONS = 5
 MAX_NODES = 500
@@ -29,6 +32,7 @@ SAVEDIR = "./plots/ex_5/"
 if __name__ == "__main__":
 
     social_networks = []
+    samplers = []
     products = []
 
     # Load the products information
@@ -42,13 +46,17 @@ if __name__ == "__main__":
 
     print("Loading social networks and products...\n")
 
-    # Social network generation
+    # Social network and sampler allocation
     for social_network, index in zip(SOCIAL_NAMES, range(len(SOCIAL_NAMES))):
         helper = Helper()
         dataset = helper.read_dataset(social_network + "_fixed")
 
         # Each social network has a number of nodes equal to MAX_NODES
         social = SocialNetwork(dataset, FEATURE_PARAM[index], FEATURE_MAX, max_nodes=MAX_NODES)
+
+        mc_sampler = MonteCarloSampling(social.get_matrix().copy())
+
+        samplers.append(mc_sampler)
         social_networks.append(social)
 
     ts_regrets_per_experiment = [[], [], []]
@@ -62,6 +70,7 @@ if __name__ == "__main__":
     for i in range(3):
         product = products[i]
         product_id = product["product_id"]
+
         seasons = product["seasons"]
         phase = 0  # In the stationary scenario only the first phase is considered
         season_id = seasons[phase]["season_id"]
@@ -114,15 +123,20 @@ if __name__ == "__main__":
 
             # Compute the joint inflence maximisation using the current best prices as weights for each social network
             weights = [ts_learners[i].get_last_best_price() for i in range(3)]
-            budget, joint_influence, seeds = budget_allocator.joint_influence_maximization(weights=weights,
+            budget, _, seeds = budget_allocator.joint_influence_maximization(weights=weights,
                                                                                            split_joint_influence=True)
 
+            seeds = seeds_to_binary(seeds, MAX_NODES)
             # Social networks loop
             for i in range(3):
-                opt_clairvoyant = opt_clicks[i] * opt_weights[i]
+                # Convert from node indexes seed to binary encoding
+                fixed_size_seeds = seeds[i]
+
+                # Compute social influence simulating the cascade
+                seeds_vector = samplers[i].simulate_episode(fixed_size_seeds, MAX_PROPAGATION_STEPS)
 
                 # The number of clicks for the timestep is given by the social influence value = number of activated nodes
-                learner_clicks = int(round(joint_influence[i]))
+                learner_clicks = int(np.sum(seeds_vector))
 
                 # Bandit pricing initialization
                 reward_ucb = 0
