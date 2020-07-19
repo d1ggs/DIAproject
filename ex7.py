@@ -220,6 +220,10 @@ if __name__ == "__main__":
 
     # Cumulative plot
 
+    labels = []
+    results = []
+    timesteps = []
+    indexes = []
 
     total_regret = np.sum(ts_regrets_per_experiment, axis=0)
 
